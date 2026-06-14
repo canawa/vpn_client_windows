@@ -104,6 +104,13 @@
       },
       {
         "type": "field",
+        "outboundTag": "direct",
+        "domain": [
+          "domain:claude.ai"
+        ]
+      },
+      {
+        "type": "field",
         "network": "tcp,udp",
         "outboundTag": "proxy"
       }
@@ -183,6 +190,6 @@
   ],
   "remarks": "\uD83C\uDDF5\uD83C\uDDF1 \uD83E\uDD8E \u041F\u043E\u043B\u044C\u0448\u0430 | Hysteria",
   "log": {
-    "loglevel": "warning"
+    "loglevel": "info"
   }
 }

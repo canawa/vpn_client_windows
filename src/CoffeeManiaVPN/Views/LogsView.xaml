@@ -7,29 +7,45 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Button Content="Очистить"
-                Click="ClearButton_Click"
-                Padding="14,8"
-                HorizontalAlignment="Right"
-                Margin="0,0,0,12"
-                Background="{StaticResource SurfaceContainerHighBrush}"
-                Foreground="{StaticResource OnSurfaceBrush}"
-                BorderThickness="0"
-                Cursor="Hand" />
+
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,0,0,12">
+            <Button Content="Скачать"
+                    Click="DownloadButton_Click"
+                    Style="{StaticResource PrimaryActionButtonStyle}"
+                    Margin="0,0,8,0" />
+            <Button Content="Очистить"
+                    Click="ClearButton_Click"
+                    Style="{StaticResource SecondaryActionButtonStyle}" />
+        </StackPanel>
+
         <Border Grid.Row="1"
                 Background="{StaticResource SurfaceContainerBrush}"
                 CornerRadius="14"
                 BorderBrush="{StaticResource MicaBorderBrush}"
                 BorderThickness="1"
                 Padding="12">
-            <ScrollViewer x:Name="LogsScrollViewer"
-                          VerticalScrollBarVisibility="Auto">
-                <TextBlock x:Name="LogsTextBlock"
-                           FontFamily="Consolas"
-                           FontSize="12"
+            <Grid>
+                <ScrollViewer x:Name="LogsScrollViewer"
+                              VerticalScrollBarVisibility="Auto">
+                    <TextBlock x:Name="LogsTextBlock"
+                               FontFamily="Consolas"
+                               FontSize="12"
+                               Foreground="{StaticResource OnSurfaceVariantBrush}"
+                               TextWrapping="Wrap" />
+                </ScrollViewer>
+                <TextBlock x:Name="EmptyTextBlock"
+                           Text="Логи появятся после запуска приложения и подключения к VPN."
+                           FontSize="13"
                            Foreground="{StaticResource OnSurfaceVariantBrush}"
-                           TextWrapping="Wrap" />
-            </ScrollViewer>
+                           TextWrapping="Wrap"
+                           TextAlignment="Center"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Margin="24"
+                           Visibility="Visible" />
+            </Grid>
         </Border>
     </Grid>
 </UserControl>

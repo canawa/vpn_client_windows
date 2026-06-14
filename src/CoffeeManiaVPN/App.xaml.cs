@@ -8,13 +8,12 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        PreloadBundledEmojis();
+        PreloadServerEmojis();
     }
 
-    private static void PreloadBundledEmojis()
+    private static void PreloadServerEmojis()
     {
-        foreach (var emoji in new[] { "🌐", "⚙", "📡", "🔗", "🎨", "🐞", "🛡", "🦎", "🌱", "🤏", "🟢", "⚪", "⚫" })
+        foreach (var emoji in new[] { "🦎", "🌱", "🤏", "🟢", "⚪", "⚫" })
             EmojiImageHelper.TryGetImage(emoji);
     }
 }
-

@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Shell;
 using System.Windows.Threading;
 using CoffeeManiaVPN.Core.Models;
 using CoffeeManiaVPN.Core.Services;
@@ -22,14 +23,20 @@ public partial class MainWindow : Window
     private readonly VpnTrafficMonitor _trafficMonitor = new();
     private readonly XrayRunner _xrayRunner = new();
     private readonly DispatcherTimer _trafficTimer;
+    private readonly DispatcherTimer _subscriptionAutoUpdateTimer;
+    private readonly AppLogService _appLog = new();
+    private readonly KillSwitchService _killSwitch = new();
     private readonly string _xrayDirectory;
 
     private readonly HomeView _homeView = new();
     private readonly ServersView _serversView = new();
     private readonly SettingsView _settingsView = new();
     private readonly ConnectionSettingsView _connectionSettingsView = new();
+    private readonly SiteSplitTunnelSettingsView _siteSplitTunnelSettingsView = new();
+    private readonly AppSplitTunnelSettingsView _appSplitTunnelSettingsView = new();
+    private readonly KillSwitchSettingsView _killSwitchSettingsView = new();
     private readonly SubscriptionSettingsView _subscriptionSettingsView = new();
-    private readonly LogsView _logsView = new();
+    private readonly LogsView _logsView;
     private readonly AboutView _aboutView = new();
 
     private IReadOnlyList<ProxyNode> _nodes = Array.Empty<ProxyNode>();
@@ -48,6 +55,7 @@ public partial class MainWindow : Window
         _deviceIdentity = new DeviceIdentityService(_settings);
         _subscriptionService = new SubscriptionService(_deviceIdentity);
         _xrayDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "xray"));
+        _logsView = new LogsView(_appLog);
 
         _trafficTimer = new DispatcherTimer
         {
@@ -55,18 +63,24 @@ public partial class MainWindow : Window
         };
         _trafficTimer.Tick += (_, _) => UpdateTrafficStats();
 
+        _subscriptionAutoUpdateTimer = new DispatcherTimer();
+        _subscriptionAutoUpdateTimer.Tick += async (_, _) => await RefreshSubscriptionAsync();
+
         WireViews();
         NavigateTo(Page.Home);
 
-        _xrayRunner.LogReceived += (_, message) => Dispatcher.Invoke(() =>
-        {
-            _logsView.AppendLog(message);
-            _settingsView.SetStatus(message);
-            _subscriptionSettingsView.SetStatus(message);
-        });
+        _appLog.LoadExisting();
+        _appLog.Append("Приложение запущено.");
+        _killSwitch.Disengage();
+
+        _xrayRunner.LogReceived += (_, message) =>
+            Dispatcher.Invoke(() => _appLog.Append(message));
         _xrayRunner.Exited += OnXrayExited;
 
         _subscriptionSettingsView.SubscriptionUrl = _settings.SubscriptionUrl;
+        _subscriptionSettingsView.AutoUpdateEnabled = _settings.AutoUpdateSubscription;
+        _subscriptionSettingsView.AutoUpdateIntervalMinutes = _settings.AutoUpdateIntervalMinutes;
+        ConfigureSubscriptionAutoUpdate();
         UpdateCurrentServerDisplay();
 
         if (!string.IsNullOrWhiteSpace(_settings.SubscriptionUrl))
@@ -79,6 +93,9 @@ public partial class MainWindow : Window
         Servers,
         Settings,
         Connection,
+        ConnectionSites,
+        ConnectionApps,
+        ConnectionKillSwitch,
         Subscription,
         Logs,
         About
@@ -101,6 +118,78 @@ public partial class MainWindow : Window
         _settingsView.CloseAppRequested += (_, _) => Close();
 
         _subscriptionSettingsView.RefreshRequested += async (_, _) => await RefreshSubscriptionAsync();
+        _subscriptionSettingsView.DeleteRequested += async (_, _) => await DeleteSubscriptionAsync();
+        _subscriptionSettingsView.AutoUpdateChanged += (_, enabled) =>
+        {
+            _settings.AutoUpdateSubscription = enabled;
+            _settings.Save();
+            ConfigureSubscriptionAutoUpdate();
+        };
+        _subscriptionSettingsView.AutoUpdateIntervalChanged += (_, minutes) =>
+        {
+            _settings.AutoUpdateIntervalMinutes = AppSettings.NormalizeAutoUpdateIntervalMinutes(minutes);
+            _settings.Save();
+            ConfigureSubscriptionAutoUpdate();
+        };
+
+        _connectionSettingsView.OpenSiteSplitRequested += (_, _) => NavigateTo(Page.ConnectionSites);
+        _connectionSettingsView.OpenAppSplitRequested += (_, _) => NavigateTo(Page.ConnectionApps);
+        _connectionSettingsView.OpenKillSwitchRequested += (_, _) => NavigateTo(Page.ConnectionKillSwitch);
+
+        _siteSplitTunnelSettingsView.EnabledChanged += (_, enabled) =>
+        {
+            _settings.SiteSplitTunnelEnabled = enabled;
+            _settings.Save();
+            _ = ReconnectIfConnectedAsync("Настройки сайтов применены.");
+        };
+        _siteSplitTunnelSettingsView.ModeChanged += (_, mode) =>
+        {
+            _settings.SiteSplitTunnelMode = mode;
+            _settings.Save();
+            _ = ReconnectIfConnectedAsync("Режим туннелирования сайтов изменён.");
+        };
+        _siteSplitTunnelSettingsView.DomainsChanged += (_, domains) =>
+        {
+            _settings.SiteSplitTunnelDomains = domains.ToList();
+            _settings.Save();
+            _ = ReconnectIfConnectedAsync("Список доменов обновлён.");
+        };
+
+        _appSplitTunnelSettingsView.EnabledChanged += (_, enabled) =>
+        {
+            _settings.AppSplitTunnelEnabled = enabled;
+            _settings.Save();
+            _ = ReconnectIfConnectedAsync("Настройки приложений применены.");
+        };
+        _appSplitTunnelSettingsView.ModeChanged += (_, mode) =>
+        {
+            _settings.AppSplitTunnelMode = mode;
+            _settings.Save();
+            _ = ReconnectIfConnectedAsync("Режим туннелирования приложений изменён.");
+        };
+        _appSplitTunnelSettingsView.AppsChanged += (_, apps) =>
+        {
+            _settings.AppSplitTunnelApps = apps.ToList();
+            _settings.Save();
+            _ = ReconnectIfConnectedAsync("Список приложений обновлён.");
+        };
+
+        _killSwitchSettingsView.EnabledChanged += (_, enabled) =>
+        {
+            _settings.KillSwitchEnabled = enabled;
+            _settings.Save();
+
+            if (!enabled && _killSwitch.IsEngaged)
+            {
+                _killSwitch.Disengage();
+                _killSwitchSettingsView.UpdateEngagedStatus(false);
+                _appLog.Append("Kill Switch отключён.");
+            }
+            else
+            {
+                _killSwitchSettingsView.UpdateEngagedStatus(_killSwitch.IsEngaged);
+            }
+        };
     }
 
     private void NavigateTo(Page page)
@@ -113,11 +202,33 @@ public partial class MainWindow : Window
             Page.Servers => _serversView,
             Page.Settings => _settingsView,
             Page.Connection => _connectionSettingsView,
+            Page.ConnectionSites => _siteSplitTunnelSettingsView,
+            Page.ConnectionApps => _appSplitTunnelSettingsView,
+            Page.ConnectionKillSwitch => _killSwitchSettingsView,
             Page.Subscription => _subscriptionSettingsView,
             Page.Logs => _logsView,
             Page.About => _aboutView,
             _ => _homeView
         };
+
+        if (page == Page.ConnectionSites)
+        {
+            _siteSplitTunnelSettingsView.Load(
+                _settings.SiteSplitTunnelEnabled,
+                _settings.SiteSplitTunnelMode,
+                _settings.SiteSplitTunnelDomains);
+        }
+        else if (page == Page.ConnectionApps)
+        {
+            _appSplitTunnelSettingsView.Load(
+                _settings.AppSplitTunnelEnabled,
+                _settings.AppSplitTunnelMode,
+                _settings.AppSplitTunnelApps);
+        }
+        else if (page == Page.ConnectionKillSwitch)
+        {
+            _killSwitchSettingsView.Load(_settings.KillSwitchEnabled, _killSwitch.IsEngaged);
+        }
 
         PageTitleTextBlock.Text = page switch
         {
@@ -125,15 +236,23 @@ public partial class MainWindow : Window
             Page.Servers => "Серверы",
             Page.Settings => "Настройки",
             Page.Connection => "Соединение",
+            Page.ConnectionSites => "Туннелирование сайтов",
+            Page.ConnectionApps => "Туннелирование приложений",
+            Page.ConnectionKillSwitch => "Kill switch",
             Page.Subscription => "Подписка",
             Page.Logs => "Логи",
             Page.About => "О КОФЕМАНИЯ ВПН",
             _ => "Главная"
         };
 
-        var isSubPage = page is Page.Connection or Page.Subscription or Page.Logs or Page.About;
+        var isSubPage = page is Page.Connection
+            or Page.ConnectionSites
+            or Page.ConnectionApps
+            or Page.ConnectionKillSwitch
+            or Page.Subscription
+            or Page.Logs
+            or Page.About;
         BackButton.Visibility = isSubPage ? Visibility.Visible : Visibility.Collapsed;
-        SettingsButton.Visibility = page == Page.Settings ? Visibility.Collapsed : Visibility.Visible;
 
         NavHomeButton.Style = page == Page.Home
             ? (Style)FindResource("NavPillActiveButtonStyle")
@@ -141,13 +260,26 @@ public partial class MainWindow : Window
         NavServersButton.Style = page == Page.Servers
             ? (Style)FindResource("NavPillActiveButtonStyle")
             : (Style)FindResource("NavPillButtonStyle");
-        NavSettingsButton.Style = page is Page.Settings or Page.Connection or Page.Subscription or Page.Logs or Page.About
+        NavSettingsButton.Style = page is Page.Settings
+            or Page.Connection
+            or Page.ConnectionSites
+            or Page.ConnectionApps
+            or Page.ConnectionKillSwitch
+            or Page.Subscription
+            or Page.Logs
+            or Page.About
             ? (Style)FindResource("NavPillActiveButtonStyle")
             : (Style)FindResource("NavPillButtonStyle");
     }
 
     private void NavigateBack()
     {
+        if (_currentPage is Page.ConnectionSites or Page.ConnectionApps or Page.ConnectionKillSwitch)
+        {
+            NavigateTo(Page.Connection);
+            return;
+        }
+
         if (_currentPage is Page.Connection or Page.Subscription or Page.Logs or Page.About)
             NavigateTo(Page.Settings);
     }
@@ -169,8 +301,10 @@ public partial class MainWindow : Window
 
         _settingsView.SetStatus("Загрузка подписки...");
         _subscriptionSettingsView.SetStatus("Загрузка подписки...");
+        _subscriptionSettingsView.SetBusy(true);
         _serversView.SetRefreshing(true);
         _serversView.SetHeaderStatus("Обновление подписки...");
+        _appLog.Append("Обновление подписки...");
 
         try
         {
@@ -180,6 +314,7 @@ public partial class MainWindow : Window
             _settings.SubscriptionUrl = url;
             _settings.Save();
             _subscriptionSettingsView.SubscriptionUrl = url;
+            ConfigureSubscriptionAutoUpdate();
 
             var selectedIndex = _settings.SelectedNodeIndex;
             if (selectedIndex < 0 || selectedIndex >= _nodes.Count)
@@ -203,6 +338,7 @@ public partial class MainWindow : Window
             _settingsView.SetStatus(success);
             _subscriptionSettingsView.SetStatus(success);
             _serversView.SetHeaderStatus(success);
+            _appLog.Append(success);
         }
         catch (Exception ex)
         {
@@ -215,11 +351,57 @@ public partial class MainWindow : Window
             _settingsView.SetStatus(ex.Message);
             _subscriptionSettingsView.SetStatus(ex.Message);
             _serversView.SetHeaderStatus(ex.Message);
+            _appLog.Append($"Ошибка подписки: {ex.Message}");
         }
         finally
         {
+            _subscriptionSettingsView.SetBusy(false);
             _serversView.SetRefreshing(false);
         }
+    }
+
+    private async Task DeleteSubscriptionAsync()
+    {
+        if (_isConnected)
+        {
+            await DisconnectAsync("VPN отключён.");
+        }
+
+        _settings.SubscriptionUrl = string.Empty;
+        _settings.SelectedNodeIndex = -1;
+        _settings.Save();
+
+        _nodes = Array.Empty<ProxyNode>();
+        _subscriptionInfo = SubscriptionInfo.Empty;
+        _selectedNode = null;
+
+        _subscriptionSettingsView.SubscriptionUrl = string.Empty;
+        _serversView.SetServers(_nodes, -1);
+        _serversView.SetSubscriptionInfo(_subscriptionInfo);
+        UpdateCurrentServerDisplay();
+        ConfigureSubscriptionAutoUpdate();
+
+        const string message = "Подписка удалена.";
+        _settingsView.SetStatus(message);
+        _subscriptionSettingsView.SetStatus(message);
+        _serversView.SetHeaderStatus(message);
+        _appLog.Append(message);
+    }
+
+    private void ConfigureSubscriptionAutoUpdate()
+    {
+        var intervalMinutes = AppSettings.NormalizeAutoUpdateIntervalMinutes(_settings.AutoUpdateIntervalMinutes);
+        _settings.AutoUpdateIntervalMinutes = intervalMinutes;
+        _subscriptionAutoUpdateTimer.Interval = TimeSpan.FromMinutes(intervalMinutes);
+
+        if (_settings.AutoUpdateSubscription &&
+            !string.IsNullOrWhiteSpace(_settings.SubscriptionUrl))
+        {
+            _subscriptionAutoUpdateTimer.Start();
+            return;
+        }
+
+        _subscriptionAutoUpdateTimer.Stop();
     }
 
     private async Task PingServersAsync()
@@ -276,9 +458,7 @@ public partial class MainWindow : Window
     {
         if (_isConnected)
         {
-            await _xrayRunner.StopAsync();
-            SetConnected(false);
-            _settingsView.SetStatus("Отключено.");
+            await DisconnectAsync("Отключено.");
             return;
         }
 
@@ -291,22 +471,101 @@ public partial class MainWindow : Window
         }
 
         _settingsView.SetStatus("Подключение...");
+        _appLog.Append($"Подключение к «{_selectedNode.Name}»...");
 
         try
         {
-            await _xrayRunner.StartAsync(_selectedNode, _xrayDirectory);
-            SetConnected(true);
+            await _xrayRunner.StartAsync(_selectedNode, _xrayDirectory, _settings);
+            SetConnected(true, intentionalDisconnect: true);
+            ApplyKillSwitchOnConnect();
             _settingsView.SetStatus($"Подключено к «{_selectedNode.Name}» через TUN.");
+            _appLog.Append($"VPN подключён: «{_selectedNode.Name}».");
         }
         catch (Exception ex)
         {
             await _xrayRunner.StopAsync();
-            SetConnected(false);
+            SetConnected(false, intentionalDisconnect: true);
             _settingsView.SetStatus(ex.Message);
+            _appLog.Append($"Ошибка подключения: {ex.Message}");
         }
     }
 
-    private void SetConnected(bool connected)
+    private async Task DisconnectAsync(string statusMessage)
+    {
+        await _xrayRunner.StopAsync();
+        SetConnected(false, intentionalDisconnect: true);
+        _settingsView.SetStatus(statusMessage);
+        _appLog.Append(statusMessage);
+    }
+
+    private async Task ReconnectIfConnectedAsync(string statusMessage)
+    {
+        if (!_isConnected || _selectedNode is null || _selectedNode.IsPlaceholder)
+            return;
+
+        _settingsView.SetStatus("Применение настроек...");
+        _appLog.Append(statusMessage);
+
+        try
+        {
+            await _xrayRunner.StopAsync();
+            await _xrayRunner.StartAsync(_selectedNode, _xrayDirectory, _settings);
+            ApplyKillSwitchOnConnect();
+            _settingsView.SetStatus(statusMessage);
+        }
+        catch (Exception ex)
+        {
+            await _xrayRunner.StopAsync();
+            SetConnected(false, intentionalDisconnect: true);
+            _settingsView.SetStatus(ex.Message);
+            _appLog.Append($"Ошибка переподключения: {ex.Message}");
+        }
+    }
+
+    private void ApplyKillSwitchOnConnect()
+    {
+        if (!_settings.KillSwitchEnabled)
+            return;
+
+        try
+        {
+            var xrayExe = Path.Combine(_xrayDirectory, "xray.exe");
+            var appExe = Environment.ProcessPath ?? Path.Combine(AppContext.BaseDirectory, "CoffeeManiaVPN.exe");
+            _killSwitch.Engage(xrayExe, appExe);
+            _killSwitchSettingsView.UpdateEngagedStatus(false);
+            _appLog.Append("Kill Switch активирован.");
+        }
+        catch (Exception ex)
+        {
+            _appLog.Append($"Kill Switch: {ex.Message}");
+            _killSwitchSettingsView.SetStatus(ex.Message);
+        }
+    }
+
+    private void ApplyKillSwitchOnDisconnect(bool intentional)
+    {
+        if (intentional || !_settings.KillSwitchEnabled)
+        {
+            _killSwitch.Disengage();
+            _killSwitchSettingsView.UpdateEngagedStatus(false);
+            return;
+        }
+
+        try
+        {
+            var xrayExe = Path.Combine(_xrayDirectory, "xray.exe");
+            var appExe = Environment.ProcessPath ?? Path.Combine(AppContext.BaseDirectory, "CoffeeManiaVPN.exe");
+            _killSwitch.Engage(xrayExe, appExe);
+            _killSwitchSettingsView.UpdateEngagedStatus(true);
+            _appLog.Append("Kill Switch: интернет заблокирован после обрыва VPN.");
+        }
+        catch (Exception ex)
+        {
+            _appLog.Append($"Kill Switch: {ex.Message}");
+        }
+    }
+
+    private void SetConnected(bool connected, bool intentionalDisconnect = false)
     {
         _isConnected = connected;
         var serverName = _selectedNode is not null
@@ -323,6 +582,7 @@ public partial class MainWindow : Window
         {
             _trafficTimer.Stop();
             _trafficMonitor.Stop();
+            ApplyKillSwitchOnDisconnect(intentionalDisconnect);
         }
 
         _homeView.SetConnected(connected, serverName);
@@ -362,11 +622,14 @@ public partial class MainWindow : Window
     private async Task OnXrayExitedAsync(int code)
     {
         await _xrayRunner.StopAsync();
-        SetConnected(false);
+        SetConnected(false, intentionalDisconnect: false);
         var message = code == 0
             ? "Соединение завершено."
-            : $"Xray завершился с кодом {code}.";
+            : _settings.KillSwitchEnabled
+                ? $"Xray завершился с кодом {code}. Kill Switch заблокировал интернет."
+                : $"Xray завершился с кодом {code}.";
         _settingsView.SetStatus(message);
+        _appLog.Append(message);
     }
 
     private void OnSourceInitialized(object? sender, EventArgs e)
@@ -381,10 +644,35 @@ public partial class MainWindow : Window
 
         var disableNcRendering = 1;
         _ = DwmSetWindowAttribute(hwnd, DwmwaNcRenderingPolicy, ref disableNcRendering, sizeof(int));
+
+        UpdateWindowCorners();
+    }
+
+    private void Window_StateChanged(object? sender, EventArgs e) => UpdateWindowCorners();
+
+    private void UpdateWindowCorners()
+    {
+        var rounded = WindowState != WindowState.Maximized;
+        var radius = rounded ? 14.0 : 0.0;
+        RootBorder.CornerRadius = new CornerRadius(radius);
+
+        var chrome = WindowChrome.GetWindowChrome(this);
+        if (chrome is not null)
+            chrome.CornerRadius = new CornerRadius(radius);
+
+        var hwnd = new WindowInteropHelper(this).Handle;
+        if (hwnd == IntPtr.Zero)
+            return;
+
+        var cornerPreference = rounded ? DwmwcpRound : DwmwcpDoNotRound;
+        _ = DwmSetWindowAttribute(hwnd, DwmwaWindowCornerPreference, ref cornerPreference, sizeof(int));
     }
 
     private const int DwmwaBorderColor = 34;
     private const int DwmwaNcRenderingPolicy = 2;
+    private const int DwmwaWindowCornerPreference = 33;
+    private const int DwmwcpDoNotRound = 1;
+    private const int DwmwcpRound = 2;
 
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int pvAttribute, int cbAttribute);
@@ -392,7 +680,6 @@ public partial class MainWindow : Window
     private void NavHomeButton_Click(object sender, RoutedEventArgs e) => NavigateTo(Page.Home);
     private void NavServersButton_Click(object sender, RoutedEventArgs e) => NavigateTo(Page.Servers);
     private void NavSettingsButton_Click(object sender, RoutedEventArgs e) => NavigateTo(Page.Settings);
-    private void SettingsButton_Click(object sender, RoutedEventArgs e) => NavigateTo(Page.Settings);
     private void BackButton_Click(object sender, RoutedEventArgs e) => NavigateBack();
 
     private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -408,6 +695,9 @@ public partial class MainWindow : Window
         WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
     private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
 
-    private void Window_Closing(object? sender, System.ComponentModel.CancelEventArgs e) =>
+    private void Window_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        _killSwitch.Disengage();
         _xrayRunner.Stop();
+    }
 }

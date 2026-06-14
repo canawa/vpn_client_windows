@@ -45,6 +45,7 @@
 [assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("assets/emoji/1f7e2.png")]
 [assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("assets/emoji/1f90f.png")]
 [assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("assets/emoji/1f98e.png")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("assets/emoji/2139.png")]
 [assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("assets/emoji/2699.png")]
 [assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("assets/emoji/26aa.png")]
 [assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("assets/emoji/26ab.png")]

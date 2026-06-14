@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET8_0;NETCOREAPP
 C:\vpn_client_windows\src\CoffeeManiaVPN\App.xaml
-141377860141
-44-958079371
-23952393151
+19-1147065176
+45-1803597785
+27-438750283
 199-138331344
-Controls\CountryFlag.xaml;Controls\EmojiIcon.xaml;Controls\EmojiTextBlock.xaml;Controls\LogoMark.xaml;MainWindow.xaml;Themes\Colors.xaml;Themes\Styles.xaml;Views\AboutView.xaml;Views\ConnectionSettingsView.xaml;Views\HomeView.xaml;Views\LogsView.xaml;Views\ServersView.xaml;Views\SettingsView.xaml;Views\SubscriptionSettingsView.xaml;
+Controls\CountryFlag.xaml;Controls\EmojiIcon.xaml;Controls\EmojiTextBlock.xaml;Controls\LogoMark.xaml;Controls\UiIcon.xaml;MainWindow.xaml;Themes\Colors.xaml;Themes\Icons.xaml;Themes\Styles.xaml;Views\AboutView.xaml;Views\AppSplitTunnelSettingsView.xaml;Views\ConnectionSettingsView.xaml;Views\HomeView.xaml;Views\KillSwitchSettingsView.xaml;Views\LogsView.xaml;Views\ServersView.xaml;Views\SettingsView.xaml;Views\SiteSplitTunnelSettingsView.xaml;Views\SubscriptionSettingsView.xaml;
 
 False
 

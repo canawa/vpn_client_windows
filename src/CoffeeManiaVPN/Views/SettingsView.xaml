@@ -3,112 +3,186 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:CoffeeManiaVPN.Controls"
              Background="Transparent">
+    <UserControl.Resources>
+        <Style x:Key="SettingsItemTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="4,0,16,0" />
+        </Style>
+        <Style x:Key="SettingsItemChevronStyle" TargetType="TextBlock" BasedOn="{StaticResource SettingsItemTextStyle}">
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="Foreground" Value="{StaticResource OnSurfaceVariantBrush}" />
+        </Style>
+    </UserControl.Resources>
+
     <ScrollViewer VerticalScrollBarVisibility="Hidden"
                   HorizontalScrollBarVisibility="Disabled">
-    <StackPanel>
-        <Button Style="{StaticResource SettingsListButtonStyle}" Click="ServersButton_Click">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <controls:EmojiIcon Emoji="🌐" IconSize="18" Width="28" />
-                <TextBlock Grid.Column="1" Text="Серверы" FontSize="16" />
-                <TextBlock Grid.Column="2" Text="›" FontSize="18" Foreground="{StaticResource OnSurfaceVariantBrush}" />
-            </Grid>
-        </Button>
-        <Border Height="1" Background="{StaticResource DividerBrush}" />
+        <StackPanel>
+            <Button Style="{StaticResource SettingsListButtonStyle}" Click="ServersButton_Click">
+                <Grid VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="40" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <controls:UiIcon Grid.Column="0"
+                                     Kind="Globe"
+                                     IconSize="20"
+                                     IconBrush="{StaticResource PrimaryBrush}"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Text="Серверы"
+                               Style="{StaticResource SettingsItemTextStyle}" />
+                    <TextBlock Grid.Column="2"
+                               Text="›"
+                               Style="{StaticResource SettingsItemChevronStyle}" />
+                </Grid>
+            </Button>
+            <Border Height="1" Background="{StaticResource DividerBrush}" />
 
-        <Button Style="{StaticResource SettingsListButtonStyle}" Click="ConnectionButton_Click">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <controls:EmojiIcon Emoji="📡" IconSize="18" Width="28" />
-                <TextBlock Grid.Column="1" Text="Соединение" FontSize="16" />
-                <TextBlock Grid.Column="2" Text="›" FontSize="18" Foreground="{StaticResource OnSurfaceVariantBrush}" />
-            </Grid>
-        </Button>
-        <Border Height="1" Background="{StaticResource DividerBrush}" />
+            <Button Style="{StaticResource SettingsListButtonStyle}" Click="ConnectionButton_Click">
+                <Grid VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="40" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <controls:UiIcon Grid.Column="0"
+                                     Kind="Connection"
+                                     IconSize="20"
+                                     IconBrush="{StaticResource PrimaryBrush}"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Text="Соединение"
+                               Style="{StaticResource SettingsItemTextStyle}" />
+                    <TextBlock Grid.Column="2"
+                               Text="›"
+                               Style="{StaticResource SettingsItemChevronStyle}" />
+                </Grid>
+            </Button>
+            <Border Height="1" Background="{StaticResource DividerBrush}" />
 
-        <Button Style="{StaticResource SettingsListButtonStyle}" Click="SubscriptionButton_Click">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <controls:EmojiIcon Emoji="🔗" IconSize="18" Width="28" />
-                <TextBlock Grid.Column="1" Text="Подписка" FontSize="16" />
-                <TextBlock Grid.Column="2" Text="›" FontSize="18" Foreground="{StaticResource OnSurfaceVariantBrush}" />
-            </Grid>
-        </Button>
-        <Border Height="1" Background="{StaticResource DividerBrush}" />
+            <Button Style="{StaticResource SettingsListButtonStyle}" Click="SubscriptionButton_Click">
+                <Grid VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="40" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <controls:UiIcon Grid.Column="0"
+                                     Kind="Subscription"
+                                     IconSize="20"
+                                     IconBrush="{StaticResource PrimaryBrush}"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Text="Подписка"
+                               Style="{StaticResource SettingsItemTextStyle}" />
+                    <TextBlock Grid.Column="2"
+                               Text="›"
+                               Style="{StaticResource SettingsItemChevronStyle}" />
+                </Grid>
+            </Button>
+            <Border Height="1" Background="{StaticResource DividerBrush}" />
 
-        <Button Style="{StaticResource SettingsListButtonStyle}" IsEnabled="False" Opacity="0.55">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <controls:EmojiIcon Emoji="🎨" IconSize="18" Width="28" />
-                <TextBlock Grid.Column="1" Text="Тема" FontSize="16" />
-                <TextBlock Grid.Column="2" Text="›" FontSize="18" Foreground="{StaticResource OnSurfaceVariantBrush}" />
-            </Grid>
-        </Button>
-        <Border Height="1" Background="{StaticResource DividerBrush}" />
+            <Button Style="{StaticResource SettingsListButtonStyle}" IsEnabled="False" Opacity="0.55">
+                <Grid VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="40" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <controls:UiIcon Grid.Column="0"
+                                     Kind="Theme"
+                                     IconSize="20"
+                                     IconBrush="{StaticResource PrimaryBrush}"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Text="Тема"
+                               Style="{StaticResource SettingsItemTextStyle}" />
+                    <TextBlock Grid.Column="2"
+                               Text="›"
+                               Style="{StaticResource SettingsItemChevronStyle}" />
+                </Grid>
+            </Button>
+            <Border Height="1" Background="{StaticResource DividerBrush}" />
 
-        <Button Style="{StaticResource SettingsListButtonStyle}" Click="LogsButton_Click">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <controls:EmojiIcon Emoji="🐞" IconSize="18" Width="28" />
-                <TextBlock Grid.Column="1" Text="Логи" FontSize="16" />
-                <TextBlock Grid.Column="2" Text="›" FontSize="18" Foreground="{StaticResource OnSurfaceVariantBrush}" />
-            </Grid>
-        </Button>
-        <Border Height="1" Background="{StaticResource DividerBrush}" />
+            <Button Style="{StaticResource SettingsListButtonStyle}" Click="LogsButton_Click">
+                <Grid VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="40" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <controls:UiIcon Grid.Column="0"
+                                     Kind="Logs"
+                                     IconSize="20"
+                                     IconBrush="{StaticResource PrimaryBrush}"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Text="Логи"
+                               Style="{StaticResource SettingsItemTextStyle}" />
+                    <TextBlock Grid.Column="2"
+                               Text="›"
+                               Style="{StaticResource SettingsItemChevronStyle}" />
+                </Grid>
+            </Button>
+            <Border Height="1" Background="{StaticResource DividerBrush}" />
 
-        <Button Style="{StaticResource SettingsListButtonStyle}" Click="AboutButton_Click">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Text="ℹ" FontSize="18" Width="28" />
-                <TextBlock Grid.Column="1" Text="О КОФЕМАНИЯ ВПН" FontSize="16" />
-                <TextBlock Grid.Column="2" Text="›" FontSize="18" Foreground="{StaticResource OnSurfaceVariantBrush}" />
-            </Grid>
-        </Button>
-        <Border Height="1" Background="{StaticResource DividerBrush}" />
+            <Button Style="{StaticResource SettingsListButtonStyle}" Click="AboutButton_Click">
+                <Grid VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="40" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <controls:UiIcon Grid.Column="0"
+                                     Kind="Info"
+                                     IconSize="20"
+                                     IconBrush="{StaticResource PrimaryBrush}"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Text="О приложении"
+                               Style="{StaticResource SettingsItemTextStyle}" />
+                    <TextBlock Grid.Column="2"
+                               Text="›"
+                               Style="{StaticResource SettingsItemChevronStyle}" />
+                </Grid>
+            </Button>
+            <Border Height="1" Background="{StaticResource DividerBrush}" />
 
-        <Button Style="{StaticResource SettingsListButtonStyle}" Click="CloseAppButton_Click">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Text="✕" FontSize="18" Width="28" Foreground="{StaticResource ErrorBrush}" />
-                <TextBlock Grid.Column="1"
-                           Text="Закрыть приложение"
-                           FontSize="16"
-                           Foreground="{StaticResource ErrorBrush}" />
-            </Grid>
-        </Button>
+            <Button Style="{StaticResource SettingsListButtonStyle}" Click="CloseAppButton_Click">
+                <Grid VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="40" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <controls:UiIcon Grid.Column="0"
+                                     Kind="Close"
+                                     IconSize="18"
+                                     IconBrush="{StaticResource ErrorBrush}"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Text="Закрыть приложение"
+                               FontSize="16"
+                               Foreground="{StaticResource ErrorBrush}"
+                               VerticalAlignment="Center"
+                               Margin="4,0,0,0" />
+                </Grid>
+            </Button>
 
-        <TextBlock x:Name="StatusTextBlock"
-                   Margin="4,20,0,0"
-                   Foreground="{StaticResource OnSurfaceVariantBrush}"
-                   FontSize="12"
-                   TextWrapping="Wrap" />
-    </StackPanel>
+            <TextBlock x:Name="StatusTextBlock"
+                       Margin="8,20,0,0"
+                       Foreground="{StaticResource OnSurfaceVariantBrush}"
+                       FontSize="12"
+                       TextWrapping="Wrap" />
+        </StackPanel>
     </ScrollViewer>
 </UserControl>

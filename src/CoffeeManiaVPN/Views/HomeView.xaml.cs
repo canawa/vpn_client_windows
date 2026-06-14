@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Shapes;
 using CoffeeManiaVPN.Core.Models;
 using CoffeeManiaVPN.Helpers;
 
@@ -41,7 +40,7 @@ public partial class HomeView : UserControl
     {
         ConnectButton.ApplyTemplate();
 
-        if (ConnectButton.Template?.FindName("OuterRing", ConnectButton) is not Ellipse outerRing ||
+        if (ConnectButton.Template?.FindName("RingLayer", ConnectButton) is not Border ringLayer ||
             ConnectButton.Template?.FindName("ConnectLogo", ConnectButton) is not Controls.LogoMark logo)
         {
             return;
@@ -49,14 +48,12 @@ public partial class HomeView : UserControl
 
         if (connected)
         {
-            outerRing.Fill = (Brush)FindResource("ConnectButtonFillBrush");
-            outerRing.Stroke = (Brush)FindResource("TertiaryBrush");
+            ringLayer.Background = (Brush)FindResource("TertiaryBrush");
             logo.IconBrush = (Brush)FindResource("TertiaryBrush");
             return;
         }
 
-        outerRing.Fill = (Brush)FindResource("ConnectButtonFillBrush");
-        outerRing.Stroke = (Brush)FindResource("ConnectButtonBorderBrush");
+        ringLayer.Background = (Brush)FindResource("ConnectButtonBorderBrush");
         logo.IconBrush = (Brush)FindResource("OnSurfaceBrush");
     }
 

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using CoffeeManiaVPN.Core.Services;
 
 namespace CoffeeManiaVPN.Core.Xray;
 
@@ -10,13 +11,17 @@ public static class XrayTunConfigurator
         WriteIndented = true
     };
 
-    public static string Apply(string configJson)
+    public static string Apply(string configJson, AppSettings? settings = null) =>
+        Apply(configJson, settings as ISplitTunnelSettings);
+
+    public static string Apply(string configJson, ISplitTunnelSettings? settings)
     {
         var config = JsonNode.Parse(configJson)?.AsObject()
             ?? throw new InvalidOperationException("Не удалось разобрать конфиг Xray.");
 
         EnsureLog(config);
         ReplaceInboundsWithTun(config);
+        ApplySplitTunnelRules(config, settings);
 
         return config.ToJsonString(SerializerOptions);
     }
@@ -45,12 +50,12 @@ public static class XrayTunConfigurator
 
     private static void EnsureLog(JsonObject config)
     {
-        if (config.ContainsKey("log"))
+        if (config["log"] is JsonObject)
             return;
 
         config["log"] = new JsonObject
         {
-            ["loglevel"] = "warning"
+            ["loglevel"] = "info"
         };
     }
 
@@ -75,4 +80,155 @@ public static class XrayTunConfigurator
 
         config["inbounds"] = inbounds;
     }
+
+    private static void ApplySplitTunnelRules(JsonObject config, ISplitTunnelSettings? settings)
+    {
+        if (settings is null)
+            return;
+
+        if (config["routing"] is not JsonObject routing)
+            return;
+
+        if (routing["rules"] is not JsonArray rules)
+            return;
+
+        var catchAllIndex = FindCatchAllRuleIndex(rules);
+        if (catchAllIndex < 0)
+            return;
+
+        var insertIndex = catchAllIndex;
+        var inserted = 0;
+
+        if (settings.SiteSplitTunnelEnabled && settings.SiteSplitTunnelDomains.Count > 0)
+        {
+            var domains = settings.SiteSplitTunnelDomains
+                .Select(NormalizeDomain)
+                .Where(static domain => !string.IsNullOrWhiteSpace(domain))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Select(static domain => (JsonNode)domain)
+                .ToArray();
+
+            if (domains.Length > 0)
+            {
+                rules.Insert(insertIndex, CreateFieldRule(
+                    domains,
+                    settings.SiteSplitTunnelMode == AppSettings.SplitTunnelModeProxyOnly ? "proxy" : "direct"));
+                inserted++;
+            }
+        }
+
+        if (settings.AppSplitTunnelEnabled && settings.AppSplitTunnelApps.Count > 0)
+        {
+            var processes = settings.AppSplitTunnelApps
+                .Select(NormalizeProcessPath)
+                .Where(static path => !string.IsNullOrWhiteSpace(path))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Select(static path => (JsonNode)path)
+                .ToArray();
+
+            if (processes.Length > 0)
+            {
+                rules.Insert(insertIndex, CreateFieldRule(
+                    processes,
+                    settings.AppSplitTunnelMode == AppSettings.SplitTunnelModeProxyOnly ? "proxy" : "direct",
+                    isProcess: true));
+                inserted++;
+            }
+        }
+
+        if (inserted == 0)
+            return;
+
+        var useDirectCatchAll =
+            (settings.SiteSplitTunnelEnabled &&
+             settings.SiteSplitTunnelMode == AppSettings.SplitTunnelModeProxyOnly &&
+             settings.SiteSplitTunnelDomains.Count > 0) ||
+            (settings.AppSplitTunnelEnabled &&
+             settings.AppSplitTunnelMode == AppSettings.SplitTunnelModeProxyOnly &&
+             settings.AppSplitTunnelApps.Count > 0);
+
+        if (!useDirectCatchAll)
+            return;
+
+        var catchAllRule = rules[catchAllIndex + inserted];
+        if (catchAllRule is JsonObject catchAllObject)
+            catchAllObject["outboundTag"] = "direct";
+    }
+
+    private static JsonObject CreateFieldRule(JsonNode[] values, string outboundTag, bool isProcess = false)
+    {
+        var rule = new JsonObject
+        {
+            ["type"] = "field",
+            ["outboundTag"] = outboundTag
+        };
+
+        if (isProcess)
+            rule["process"] = new JsonArray(values);
+        else
+            rule["domain"] = new JsonArray(values);
+
+        return rule;
+    }
+
+    private static int FindCatchAllRuleIndex(JsonArray rules)
+    {
+        for (var index = rules.Count - 1; index >= 0; index--)
+        {
+            if (rules[index] is not JsonObject rule)
+                continue;
+
+            var network = rule["network"]?.GetValue<string>();
+            if (string.IsNullOrWhiteSpace(network))
+                continue;
+
+            return index;
+        }
+
+        return -1;
+    }
+
+    private static string NormalizeDomain(string raw)
+    {
+        var value = raw.Trim();
+        if (string.IsNullOrWhiteSpace(value))
+            return string.Empty;
+
+        if (value.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+            value.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            if (Uri.TryCreate(value, UriKind.Absolute, out var uri))
+                value = uri.Host;
+        }
+
+        value = value.TrimStart('*', '.');
+        value = value.Split('/', '?', '#')[0];
+
+        if (string.IsNullOrWhiteSpace(value))
+            return string.Empty;
+
+        if (value.Contains(':'))
+            return value;
+
+        return $"domain:{value}";
+    }
+
+    private static string NormalizeProcessPath(string raw)
+    {
+        var value = raw.Trim();
+        if (string.IsNullOrWhiteSpace(value))
+            return string.Empty;
+
+        return value.Replace('\\', '/');
+    }
+}
+
+public interface ISplitTunnelSettings
+{
+    bool SiteSplitTunnelEnabled { get; }
+    string SiteSplitTunnelMode { get; }
+    IReadOnlyList<string> SiteSplitTunnelDomains { get; }
+    bool AppSplitTunnelEnabled { get; }
+    string AppSplitTunnelMode { get; }
+    IReadOnlyList<string> AppSplitTunnelApps { get; }
 }

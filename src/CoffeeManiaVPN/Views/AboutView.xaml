@@ -22,18 +22,6 @@
                    FontSize="14"
                    Foreground="{StaticResource OnSurfaceVariantBrush}"
                    HorizontalAlignment="Center"
-                   Margin="0,8,0,24" />
-        <TextBlock Text="Premium Roast Protection"
-                   FontSize="14"
-                   Foreground="{StaticResource OnSurfaceVariantBrush}"
-                   HorizontalAlignment="Center"
-                   TextWrapping="Wrap"
-                   TextAlignment="Center"
-                   MaxWidth="360" />
-        <TextBlock Text="coffeemaniavpn.ru"
-                   FontSize="13"
-                   Foreground="{StaticResource PrimaryBrush}"
-                   HorizontalAlignment="Center"
-                   Margin="0,20,0,0" />
+                   Margin="0,8,0,0" />
     </StackPanel>
 </UserControl>

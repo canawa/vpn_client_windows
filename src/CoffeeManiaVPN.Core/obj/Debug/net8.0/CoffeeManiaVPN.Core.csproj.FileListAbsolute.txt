@@ -9,3 +9,4 @@ C:\vpn_client_windows\src\CoffeeManiaVPN.Core\obj\Debug\net8.0\CoffeeManiaVPN.Co
 C:\vpn_client_windows\src\CoffeeManiaVPN.Core\obj\Debug\net8.0\refint\CoffeeManiaVPN.Core.dll
 C:\vpn_client_windows\src\CoffeeManiaVPN.Core\obj\Debug\net8.0\CoffeeManiaVPN.Core.pdb
 C:\vpn_client_windows\src\CoffeeManiaVPN.Core\obj\Debug\net8.0\ref\CoffeeManiaVPN.Core.dll
+c:\vpn_client_windows\src\CoffeeManiaVPN.Core\obj\Debug\net8.0\CoffeeManiaVPN.Core.sourcelink.json

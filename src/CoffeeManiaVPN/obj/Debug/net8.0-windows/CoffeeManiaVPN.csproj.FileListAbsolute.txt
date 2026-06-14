@@ -102,3 +102,14 @@ c:\vpn_client_windows\src\CoffeeManiaVPN\bin\Debug\net8.0-windows\Assets\Emoji\1
 c:\vpn_client_windows\src\CoffeeManiaVPN\bin\Debug\net8.0-windows\Assets\Emoji\2699.png
 c:\vpn_client_windows\src\CoffeeManiaVPN\obj\Debug\net8.0-windows\Controls\EmojiIcon.baml
 c:\vpn_client_windows\src\CoffeeManiaVPN\obj\Debug\net8.0-windows\Controls\EmojiIcon.g.cs
+c:\vpn_client_windows\src\CoffeeManiaVPN\obj\Debug\net8.0-windows\CoffeeManiaVPN.sourcelink.json
+c:\vpn_client_windows\src\CoffeeManiaVPN\bin\Debug\net8.0-windows\Assets\Emoji\2139.png
+c:\vpn_client_windows\src\CoffeeManiaVPN\obj\Debug\net8.0-windows\Controls\UiIcon.baml
+c:\vpn_client_windows\src\CoffeeManiaVPN\obj\Debug\net8.0-windows\Themes\Icons.baml
+c:\vpn_client_windows\src\CoffeeManiaVPN\obj\Debug\net8.0-windows\Controls\UiIcon.g.cs
+c:\vpn_client_windows\src\CoffeeManiaVPN\obj\Debug\net8.0-windows\Views\AppSplitTunnelSettingsView.baml
+c:\vpn_client_windows\src\CoffeeManiaVPN\obj\Debug\net8.0-windows\Views\SiteSplitTunnelSettingsView.baml
+c:\vpn_client_windows\src\CoffeeManiaVPN\obj\Debug\net8.0-windows\Views\AppSplitTunnelSettingsView.g.cs
+c:\vpn_client_windows\src\CoffeeManiaVPN\obj\Debug\net8.0-windows\Views\KillSwitchSettingsView.g.cs
+c:\vpn_client_windows\src\CoffeeManiaVPN\obj\Debug\net8.0-windows\Views\SiteSplitTunnelSettingsView.g.cs
+c:\vpn_client_windows\src\CoffeeManiaVPN\obj\Debug\net8.0-windows\Views\KillSwitchSettingsView.baml

@@ -33,13 +33,20 @@
                     <ControlTemplate TargetType="Button">
                         <Grid Width="200"
                               Height="200"
+                              SnapsToDevicePixels="True"
+                              UseLayoutRounding="True"
                               RenderTransformOrigin="0.5,0.5">
-                            <Ellipse x:Name="OuterRing"
-                                     Width="200"
-                                     Height="200"
-                                     Fill="{StaticResource ConnectButtonFillBrush}"
-                                     Stroke="{StaticResource ConnectButtonBorderBrush}"
-                                     StrokeThickness="1.5" />
+                            <Border x:Name="RingLayer"
+                                    Width="200"
+                                    Height="200"
+                                    CornerRadius="100"
+                                    Background="{StaticResource ConnectButtonBorderBrush}" />
+                            <Border Width="196"
+                                    Height="196"
+                                    CornerRadius="98"
+                                    Background="{StaticResource ConnectButtonFillBrush}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center" />
                             <controls:LogoMark x:Name="ConnectLogo"
                                                Width="92"
                                                Height="92"
@@ -49,7 +56,7 @@
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="OuterRing" Property="Stroke" Value="#3A302C" />
+                                <Setter TargetName="RingLayer" Property="Background" Value="#3A302C" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter Property="RenderTransform">

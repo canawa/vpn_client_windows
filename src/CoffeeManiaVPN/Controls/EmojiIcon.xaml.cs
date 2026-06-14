@@ -65,8 +65,6 @@ public partial class EmojiIcon : UserControl
 
     private void UpdateImage()
     {
-        Width = IconSize;
-        Height = IconSize;
         EmojiImage.Width = IconSize;
         EmojiImage.Height = IconSize;
 

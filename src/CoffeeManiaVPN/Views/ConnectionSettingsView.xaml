@@ -4,57 +4,86 @@
              xmlns:controls="clr-namespace:CoffeeManiaVPN.Controls"
              Background="Transparent">
     <StackPanel>
-        <Button Style="{StaticResource SettingsListButtonStyle}" IsEnabled="False" Opacity="0.55">
-            <Grid>
+        <Button Style="{StaticResource SettingsListButtonStyle}" Click="SiteSplitButton_Click">
+            <Grid VerticalAlignment="Center">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="40" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <controls:EmojiIcon Emoji="🌐" IconSize="18" Width="28" />
+                <controls:UiIcon Grid.Column="0"
+                                   Kind="Globe"
+                                   IconSize="20"
+                                   IconBrush="{StaticResource PrimaryBrush}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
                 <TextBlock Grid.Column="1"
                            Text="Раздельное туннелирование сайтов"
                            FontSize="16"
+                           VerticalAlignment="Center"
+                           Margin="4,0,16,0"
                            TextWrapping="Wrap" />
-                <TextBlock Grid.Column="2" Text="›" FontSize="18" Foreground="{StaticResource OnSurfaceVariantBrush}" />
+                <TextBlock Grid.Column="2"
+                           Text="›"
+                           FontSize="20"
+                           Foreground="{StaticResource OnSurfaceVariantBrush}"
+                           VerticalAlignment="Center" />
             </Grid>
         </Button>
         <Border Height="1" Background="{StaticResource DividerBrush}" />
 
-        <Button Style="{StaticResource SettingsListButtonStyle}" IsEnabled="False" Opacity="0.55">
-            <Grid>
+        <Button Style="{StaticResource SettingsListButtonStyle}" Click="AppSplitButton_Click">
+            <Grid VerticalAlignment="Center">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="40" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="▦" FontSize="18" Width="28" />
+                <controls:UiIcon Grid.Column="0"
+                                   Kind="Grid"
+                                   IconSize="20"
+                                   IconBrush="{StaticResource PrimaryBrush}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
                 <TextBlock Grid.Column="1"
                            Text="Раздельное туннелирование приложений"
                            FontSize="16"
+                           VerticalAlignment="Center"
+                           Margin="4,0,16,0"
                            TextWrapping="Wrap" />
-                <TextBlock Grid.Column="2" Text="›" FontSize="18" Foreground="{StaticResource OnSurfaceVariantBrush}" />
+                <TextBlock Grid.Column="2"
+                           Text="›"
+                           FontSize="20"
+                           Foreground="{StaticResource OnSurfaceVariantBrush}"
+                           VerticalAlignment="Center" />
             </Grid>
         </Button>
         <Border Height="1" Background="{StaticResource DividerBrush}" />
 
-        <Button Style="{StaticResource SettingsListButtonStyle}" IsEnabled="False" Opacity="0.55">
-            <Grid>
+        <Button Style="{StaticResource SettingsListButtonStyle}" Click="KillSwitchButton_Click">
+            <Grid VerticalAlignment="Center">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="40" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <controls:EmojiIcon Emoji="🛡" IconSize="18" Width="28" />
-                <TextBlock Grid.Column="1" Text="Kill switch" FontSize="16" />
-                <TextBlock Grid.Column="2" Text="›" FontSize="18" Foreground="{StaticResource OnSurfaceVariantBrush}" />
+                <controls:UiIcon Grid.Column="0"
+                                   Kind="Shield"
+                                   IconSize="20"
+                                   IconBrush="{StaticResource PrimaryBrush}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1"
+                           Text="Kill switch"
+                           FontSize="16"
+                           VerticalAlignment="Center"
+                           Margin="4,0,16,0" />
+                <TextBlock Grid.Column="2"
+                           Text="›"
+                           FontSize="20"
+                           Foreground="{StaticResource OnSurfaceVariantBrush}"
+                           VerticalAlignment="Center" />
             </Grid>
         </Button>
-
-        <TextBlock Text="Эти функции появятся в следующих версиях."
-                   Margin="4,20,0,0"
-                   FontSize="12"
-                   Foreground="{StaticResource OnSurfaceVariantBrush}"
-                   TextWrapping="Wrap" />
     </StackPanel>
 </UserControl>

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text;
 using CoffeeManiaVPN.Core.Models;
+using CoffeeManiaVPN.Core.Services;
 
 namespace CoffeeManiaVPN.Core.Xray;
 
@@ -19,7 +20,11 @@ public sealed class XrayRunner : IDisposable
     public event EventHandler<string>? LogReceived;
     public event EventHandler<int>? Exited;
 
-    public async Task StartAsync(ProxyNode node, string xrayDirectory, CancellationToken cancellationToken = default)
+    public async Task StartAsync(
+        ProxyNode node,
+        string xrayDirectory,
+        AppSettings? settings = null,
+        CancellationToken cancellationToken = default)
     {
         await KillOrphanXrayProcessesAsync(xrayDirectory, cancellationToken);
         await StopAsync(cancellationToken);
@@ -41,7 +46,7 @@ public sealed class XrayRunner : IDisposable
         var rawConfig = node.HasFullConfig
             ? node.XrayConfigJson!
             : XrayConfigBuilder.Build(node, xrayDirectory);
-        var config = XrayTunConfigurator.Apply(rawConfig);
+        var config = XrayTunConfigurator.Apply(rawConfig, settings);
         File.WriteAllText(_configPath, config);
 
         _recentLogs.Clear();
@@ -73,8 +78,8 @@ public sealed class XrayRunner : IDisposable
         throw lastError ?? new InvalidOperationException("Не удалось запустить Xray.");
     }
 
-    public void Start(ProxyNode node, string xrayDirectory) =>
-        StartAsync(node, xrayDirectory).GetAwaiter().GetResult();
+    public void Start(ProxyNode node, string xrayDirectory, AppSettings? settings = null) =>
+        StartAsync(node, xrayDirectory, settings).GetAwaiter().GetResult();
 
     private void StartProcess(string xrayExe, string configPath)
     {

@@ -10,15 +10,104 @@
         <TextBox x:Name="SubscriptionUrlTextBox"
                  Style="{StaticResource PrimaryTextBoxStyle}"
                  Margin="0,0,0,16" />
-        <Button Content="Обновить подписку"
-                Click="RefreshButton_Click"
-                Padding="18,12"
-                Background="{StaticResource PrimaryContainerBrush}"
-                Foreground="{StaticResource OnPrimaryContainerBrush}"
-                BorderThickness="0"
-                Cursor="Hand"
-                HorizontalAlignment="Left"
-                FontWeight="SemiBold" />
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+            <Button x:Name="DeleteButton"
+                    Content="Удалить"
+                    Click="DeleteButton_Click"
+                    Style="{StaticResource OutlinedDangerButtonStyle}"
+                    Margin="0,0,10,0" />
+            <Button x:Name="RefreshButton"
+                    Content="Обновить"
+                    Click="RefreshButton_Click"
+                    Style="{StaticResource PrimaryActionButtonStyle}" />
+        </StackPanel>
+
+        <Border Background="{StaticResource SurfaceContainerHighBrush}"
+                BorderBrush="#0DE6D5C3"
+                BorderThickness="1"
+                CornerRadius="14"
+                Padding="16">
+            <StackPanel>
+                <Grid Margin="0,0,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0"
+                               Grid.Column="0"
+                               Text="Автообновление"
+                               FontSize="15"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource OnSurfaceBrush}"
+                               VerticalAlignment="Center" />
+                    <CheckBox x:Name="AutoUpdateCheckBox"
+                              Grid.Row="0"
+                              Grid.Column="1"
+                              Margin="16,0,0,0"
+                              VerticalAlignment="Center"
+                              Checked="AutoUpdateCheckBox_Changed"
+                              Unchecked="AutoUpdateCheckBox_Changed" />
+                    <TextBlock x:Name="AutoUpdateHintTextBlock"
+                               Grid.Row="1"
+                               Grid.Column="0"
+                               Grid.ColumnSpan="2"
+                               Text="Обновлять подписку каждый час"
+                               FontSize="12"
+                               Foreground="{StaticResource OnSurfaceVariantBrush}"
+                               Margin="0,6,0,0" />
+                </Grid>
+
+                <Border x:Name="AutoUpdateIntervalPanel"
+                        Background="{StaticResource SurfaceContainerHighestBrush}"
+                        CornerRadius="12"
+                        Padding="4"
+                        Margin="0,14,0,0"
+                        Visibility="Collapsed">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Button x:Name="Interval1HourButton"
+                                Grid.Column="0"
+                                Content="1 ч"
+                                Margin="0,0,2,0"
+                                Style="{StaticResource SegmentButtonStyle}"
+                                Click="IntervalButton_Click"
+                                Tag="60" />
+                        <Button x:Name="Interval3HoursButton"
+                                Grid.Column="1"
+                                Content="3 ч"
+                                Margin="2,0,2,0"
+                                Style="{StaticResource SegmentButtonStyle}"
+                                Click="IntervalButton_Click"
+                                Tag="180" />
+                        <Button x:Name="Interval6HoursButton"
+                                Grid.Column="2"
+                                Content="6 ч"
+                                Margin="2,0,2,0"
+                                Style="{StaticResource SegmentButtonStyle}"
+                                Click="IntervalButton_Click"
+                                Tag="360" />
+                        <Button x:Name="Interval24HoursButton"
+                                Grid.Column="3"
+                                Content="24 ч"
+                                Margin="2,0,0,0"
+                                Style="{StaticResource SegmentButtonStyle}"
+                                Click="IntervalButton_Click"
+                                Tag="1440" />
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </Border>
+
         <TextBlock x:Name="StatusTextBlock"
                    Margin="0,16,0,0"
                    Foreground="{StaticResource OnSurfaceVariantBrush}"

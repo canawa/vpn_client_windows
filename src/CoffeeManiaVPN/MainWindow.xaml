@@ -11,21 +11,27 @@
         WindowStyle="None"
         ResizeMode="CanResize"
         WindowStartupLocation="CenterScreen"
-        Background="{StaticResource SurfaceBrush}"
+        Background="Transparent"
+        AllowsTransparency="True"
         SnapsToDevicePixels="True"
         UseLayoutRounding="True"
+        StateChanged="Window_StateChanged"
         Closing="Window_Closing">
     <shell:WindowChrome.WindowChrome>
         <shell:WindowChrome CaptionHeight="56"
-                             CornerRadius="0"
+                             CornerRadius="14"
                              GlassFrameThickness="0"
                              ResizeBorderThickness="6"
                              UseAeroCaptionButtons="False" />
     </shell:WindowChrome.WindowChrome>
-    <Border Background="{StaticResource SurfaceBrush}"
+    <Border x:Name="RootBorder"
+            Background="{StaticResource SurfaceBrush}"
+            BorderBrush="{StaticResource MicaBorderBrush}"
+            BorderThickness="1"
+            CornerRadius="14"
+            ClipToBounds="True"
             SnapsToDevicePixels="True"
-            UseLayoutRounding="True"
-            Margin="-1">
+            UseLayoutRounding="True">
         <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200" />
@@ -38,29 +44,16 @@
                 BorderBrush="{StaticResource DividerBrush}"
                 BorderThickness="0,0,1,0">
             <StackPanel Margin="16,24,16,24">
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                    <Border Width="40"
-                            Height="40"
-                            CornerRadius="12"
-                            Background="{StaticResource SurfaceContainerHighBrush}"
-                            Margin="0,0,12,0">
-                        <controls:LogoMark Width="22"
-                                           Height="22"
-                                           IconBrush="{StaticResource PrimaryBrush}"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center" />
-                    </Border>
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="КОФЕМАНИЯ"
-                                   FontSize="15"
-                                   FontWeight="Bold"
-                                   Foreground="{StaticResource OnSurfaceBrush}" />
-                        <TextBlock Text="ВПН"
-                                   FontSize="11"
-                                   FontWeight="SemiBold"
-                                   Foreground="{StaticResource OnSurfaceVariantBrush}"
-                                   Margin="0,2,0,0" />
-                    </StackPanel>
+                <StackPanel Margin="0,0,0,20">
+                    <TextBlock Text="КОФЕМАНИЯ"
+                               FontSize="15"
+                               FontWeight="Bold"
+                               Foreground="{StaticResource OnSurfaceBrush}" />
+                    <TextBlock Text="ВПН"
+                               FontSize="11"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource OnSurfaceVariantBrush}"
+                               Margin="0,2,0,0" />
                 </StackPanel>
 
                 <Button x:Name="NavHomeButton"
@@ -81,10 +74,11 @@
                         Style="{StaticResource NavPillButtonStyle}"
                         Click="NavServersButton_Click">
                     <StackPanel Orientation="Horizontal">
-                        <controls:EmojiIcon Emoji="🌐"
-                                            IconSize="18"
-                                            Margin="0,0,12,0"
-                                            VerticalAlignment="Center" />
+                        <controls:UiIcon Kind="Globe"
+                                         IconSize="18"
+                                         IconBrush="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                         Margin="0,0,12,0"
+                                         VerticalAlignment="Center" />
                         <TextBlock Text="Серверы"
                                    FontSize="14"
                                    VerticalAlignment="Center" />
@@ -94,10 +88,11 @@
                         Style="{StaticResource NavPillButtonStyle}"
                         Click="NavSettingsButton_Click">
                     <StackPanel Orientation="Horizontal">
-                        <controls:EmojiIcon Emoji="⚙"
-                                            IconSize="18"
-                                            Margin="0,0,12,0"
-                                            VerticalAlignment="Center" />
+                        <controls:UiIcon Kind="Settings"
+                                         IconSize="18"
+                                         IconBrush="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                         Margin="0,0,12,0"
+                                         VerticalAlignment="Center" />
                         <TextBlock Text="Настройки"
                                    FontSize="14"
                                    VerticalAlignment="Center" />
@@ -140,13 +135,6 @@
                     <StackPanel Orientation="Horizontal"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center">
-                        <Button x:Name="SettingsButton"
-                                Style="{StaticResource IconButtonStyle}"
-                                Click="SettingsButton_Click"
-                                ToolTip="Настройки"
-                                Margin="0,0,8,0">
-                            <controls:EmojiIcon Emoji="⚙" IconSize="16" />
-                        </Button>
                         <Button Style="{StaticResource IconButtonStyle}" Click="MinimizeButton_Click">
                             <TextBlock Text="—" />
                         </Button>
