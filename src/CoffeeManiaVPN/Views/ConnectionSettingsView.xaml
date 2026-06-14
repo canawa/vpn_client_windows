@@ -1,0 +1,60 @@
+<UserControl x:Class="CoffeeManiaVPN.Views.ConnectionSettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:CoffeeManiaVPN.Controls"
+             Background="Transparent">
+    <StackPanel>
+        <Button Style="{StaticResource SettingsListButtonStyle}" IsEnabled="False" Opacity="0.55">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <controls:EmojiIcon Emoji="🌐" IconSize="18" Width="28" />
+                <TextBlock Grid.Column="1"
+                           Text="Раздельное туннелирование сайтов"
+                           FontSize="16"
+                           TextWrapping="Wrap" />
+                <TextBlock Grid.Column="2" Text="›" FontSize="18" Foreground="{StaticResource OnSurfaceVariantBrush}" />
+            </Grid>
+        </Button>
+        <Border Height="1" Background="{StaticResource DividerBrush}" />
+
+        <Button Style="{StaticResource SettingsListButtonStyle}" IsEnabled="False" Opacity="0.55">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="▦" FontSize="18" Width="28" />
+                <TextBlock Grid.Column="1"
+                           Text="Раздельное туннелирование приложений"
+                           FontSize="16"
+                           TextWrapping="Wrap" />
+                <TextBlock Grid.Column="2" Text="›" FontSize="18" Foreground="{StaticResource OnSurfaceVariantBrush}" />
+            </Grid>
+        </Button>
+        <Border Height="1" Background="{StaticResource DividerBrush}" />
+
+        <Button Style="{StaticResource SettingsListButtonStyle}" IsEnabled="False" Opacity="0.55">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <controls:EmojiIcon Emoji="🛡" IconSize="18" Width="28" />
+                <TextBlock Grid.Column="1" Text="Kill switch" FontSize="16" />
+                <TextBlock Grid.Column="2" Text="›" FontSize="18" Foreground="{StaticResource OnSurfaceVariantBrush}" />
+            </Grid>
+        </Button>
+
+        <TextBlock Text="Эти функции появятся в следующих версиях."
+                   Margin="4,20,0,0"
+                   FontSize="12"
+                   Foreground="{StaticResource OnSurfaceVariantBrush}"
+                   TextWrapping="Wrap" />
+    </StackPanel>
+</UserControl>

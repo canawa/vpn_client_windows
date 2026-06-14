@@ -1,0 +1,97 @@
+{
+  "version": 3,
+  "targets": {
+    "net8.0-windows7.0": {
+      "CoffeeManiaVPN.Core/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "compile": {
+          "bin/placeholder/CoffeeManiaVPN.Core.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/CoffeeManiaVPN.Core.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "CoffeeManiaVPN.Core/1.0.0": {
+      "type": "project",
+      "path": "../CoffeeManiaVPN.Core/CoffeeManiaVPN.Core.csproj",
+      "msbuildProject": "../CoffeeManiaVPN.Core/CoffeeManiaVPN.Core.csproj"
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net8.0-windows7.0": [
+      "CoffeeManiaVPN.Core >= 1.0.0"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\den\\.nuget\\packages\\": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "C:\\vpn_client_windows\\src\\CoffeeManiaVPN\\CoffeeManiaVPN.csproj",
+      "projectName": "CoffeeManiaVPN",
+      "projectPath": "C:\\vpn_client_windows\\src\\CoffeeManiaVPN\\CoffeeManiaVPN.csproj",
+      "packagesPath": "C:\\Users\\den\\.nuget\\packages\\",
+      "outputPath": "C:\\vpn_client_windows\\src\\CoffeeManiaVPN\\obj\\",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "C:\\Users\\den\\AppData\\Roaming\\NuGet\\NuGet.Config"
+      ],
+      "originalTargetFrameworks": [
+        "net8.0-windows"
+      ],
+      "sources": {
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net8.0-windows7.0": {
+          "targetAlias": "net8.0-windows",
+          "projectReferences": {
+            "C:\\vpn_client_windows\\src\\CoffeeManiaVPN.Core\\CoffeeManiaVPN.Core.csproj": {
+              "projectPath": "C:\\vpn_client_windows\\src\\CoffeeManiaVPN.Core\\CoffeeManiaVPN.Core.csproj"
+            }
+          }
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      }
+    },
+    "frameworks": {
+      "net8.0-windows7.0": {
+        "targetAlias": "net8.0-windows",
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          },
+          "Microsoft.WindowsDesktop.App.WPF": {
+            "privateAssets": "none"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.422/PortableRuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "u/kxLbgUXiw=",
+  "success": true,
+  "projectFilePath": "C:\\vpn_client_windows\\tools\\GenerateIcon\\GenerateIcon.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\den\\.nuget\\packages\\sharpvectors.wpf\\1.8.4\\sharpvectors.wpf.1.8.4.nupkg.sha512"
+  ],
+  "logs": []
+}
