@@ -14,7 +14,7 @@
                 <controls:UiIcon Grid.Column="0"
                                    Kind="Globe"
                                    IconSize="20"
-                                   IconBrush="{StaticResource PrimaryBrush}"
+                                   IconBrush="{DynamicResource PrimaryBrush}"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center" />
                 <TextBlock Grid.Column="1"
@@ -26,11 +26,11 @@
                 <TextBlock Grid.Column="2"
                            Text="›"
                            FontSize="20"
-                           Foreground="{StaticResource OnSurfaceVariantBrush}"
+                           Foreground="{DynamicResource OnSurfaceVariantBrush}"
                            VerticalAlignment="Center" />
             </Grid>
         </Button>
-        <Border Height="1" Background="{StaticResource DividerBrush}" />
+        <Border Height="1" Background="{DynamicResource DividerBrush}" />
 
         <Button Style="{StaticResource SettingsListButtonStyle}" Click="AppSplitButton_Click">
             <Grid VerticalAlignment="Center">
@@ -42,7 +42,7 @@
                 <controls:UiIcon Grid.Column="0"
                                    Kind="Grid"
                                    IconSize="20"
-                                   IconBrush="{StaticResource PrimaryBrush}"
+                                   IconBrush="{DynamicResource PrimaryBrush}"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center" />
                 <TextBlock Grid.Column="1"
@@ -54,11 +54,11 @@
                 <TextBlock Grid.Column="2"
                            Text="›"
                            FontSize="20"
-                           Foreground="{StaticResource OnSurfaceVariantBrush}"
+                           Foreground="{DynamicResource OnSurfaceVariantBrush}"
                            VerticalAlignment="Center" />
             </Grid>
         </Button>
-        <Border Height="1" Background="{StaticResource DividerBrush}" />
+        <Border Height="1" Background="{DynamicResource DividerBrush}" />
 
         <Button Style="{StaticResource SettingsListButtonStyle}" Click="KillSwitchButton_Click">
             <Grid VerticalAlignment="Center">
@@ -70,7 +70,7 @@
                 <controls:UiIcon Grid.Column="0"
                                    Kind="Shield"
                                    IconSize="20"
-                                   IconBrush="{StaticResource PrimaryBrush}"
+                                   IconBrush="{DynamicResource PrimaryBrush}"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center" />
                 <TextBlock Grid.Column="1"
@@ -81,7 +81,7 @@
                 <TextBlock Grid.Column="2"
                            Text="›"
                            FontSize="20"
-                           Foreground="{StaticResource OnSurfaceVariantBrush}"
+                           Foreground="{DynamicResource OnSurfaceVariantBrush}"
                            VerticalAlignment="Center" />
             </Grid>
         </Button>

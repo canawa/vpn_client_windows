@@ -1,0 +1,92 @@
+<UserControl x:Class="CoffeeManiaVPN.Views.ThemeSettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="Transparent">
+    <StackPanel>
+        <TextBlock Text="Выберите тему оформления"
+                   FontSize="15"
+                   Foreground="{DynamicResource OnSurfaceVariantBrush}"
+                   Margin="0,0,0,20" />
+
+        <UniformGrid Columns="2" Margin="0,0,0,8">
+            <Button x:Name="DarkThemeButton"
+                    Style="{StaticResource SegmentButtonStyle}"
+                    Margin="0,0,8,0"
+                    Click="DarkThemeButton_Click">
+                <TextBlock Text="Тёмная"
+                           FontSize="15"
+                           FontWeight="SemiBold" />
+            </Button>
+            <Button x:Name="LightThemeButton"
+                    Style="{StaticResource SegmentButtonStyle}"
+                    Margin="8,0,0,0"
+                    Click="LightThemeButton_Click">
+                <TextBlock Text="Светлая"
+                           FontSize="15"
+                           FontWeight="SemiBold" />
+            </Button>
+        </UniformGrid>
+
+        <Border Background="{DynamicResource SurfaceContainerHighBrush}"
+                BorderBrush="#0DE6D5C3"
+                BorderThickness="1"
+                CornerRadius="14"
+                Padding="16"
+                Margin="0,20,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Компактная панель"
+                               FontSize="15"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource OnSurfaceBrush}" />
+                    <TextBlock Text="Скрыть подписи в боковом меню и оставить только иконки."
+                               FontSize="12"
+                               Foreground="{DynamicResource OnSurfaceVariantBrush}"
+                               Margin="0,6,0,0"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+                <CheckBox x:Name="CompactSidebarCheckBox"
+                          Grid.Column="1"
+                          Margin="16,0,0,0"
+                          VerticalAlignment="Center"
+                          Checked="CompactSidebarCheckBox_Changed"
+                          Unchecked="CompactSidebarCheckBox_Changed" />
+            </Grid>
+        </Border>
+
+        <Border Background="{DynamicResource SurfaceContainerHighBrush}"
+                BorderBrush="#0DE6D5C3"
+                BorderThickness="1"
+                CornerRadius="14"
+                Padding="16"
+                Margin="0,12,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Упрощённые анимации"
+                               FontSize="15"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource OnSurfaceBrush}" />
+                    <TextBlock Text="Мгновенная прокрутка и смена вкладок. Меньше нагрузка на ПК."
+                               FontSize="12"
+                               Foreground="{DynamicResource OnSurfaceVariantBrush}"
+                               Margin="0,6,0,0"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+                <CheckBox x:Name="SimplifiedAnimationsCheckBox"
+                          Grid.Column="1"
+                          Margin="16,0,0,0"
+                          VerticalAlignment="Center"
+                          Checked="SimplifiedAnimationsCheckBox_Changed"
+                          Unchecked="SimplifiedAnimationsCheckBox_Changed" />
+            </Grid>
+        </Border>
+    </StackPanel>
+</UserControl>

@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Background="Transparent">
     <StackPanel>
-        <Border Background="{StaticResource SurfaceContainerHighBrush}"
+        <Border Background="{DynamicResource SurfaceContainerHighBrush}"
                 BorderBrush="#0DE6D5C3"
                 BorderThickness="1"
                 CornerRadius="14"
@@ -18,10 +18,10 @@
                     <TextBlock Text="Раздельное туннелирование приложений"
                                FontSize="15"
                                FontWeight="SemiBold"
-                               Foreground="{StaticResource OnSurfaceBrush}" />
+                               Foreground="{DynamicResource OnSurfaceBrush}" />
                     <TextBlock Text="Выберите .exe, для которых применяется отдельный маршрут."
                                FontSize="12"
-                               Foreground="{StaticResource OnSurfaceVariantBrush}"
+                               Foreground="{DynamicResource OnSurfaceVariantBrush}"
                                Margin="0,6,0,0"
                                TextWrapping="Wrap" />
                 </StackPanel>
@@ -36,9 +36,9 @@
 
         <TextBlock Text="Режим"
                    FontSize="13"
-                   Foreground="{StaticResource OnSurfaceVariantBrush}"
+                   Foreground="{DynamicResource OnSurfaceVariantBrush}"
                    Margin="0,0,0,10" />
-        <Border Background="{StaticResource SurfaceContainerHighestBrush}"
+        <Border Background="{DynamicResource SurfaceContainerHighestBrush}"
                 CornerRadius="12"
                 Padding="4"
                 Margin="0,0,0,16">
@@ -66,7 +66,7 @@
 
         <TextBlock x:Name="ModeHintTextBlock"
                    FontSize="12"
-                   Foreground="{StaticResource OnSurfaceVariantBrush}"
+                   Foreground="{DynamicResource OnSurfaceVariantBrush}"
                    TextWrapping="Wrap"
                    Margin="0,0,0,16" />
 
@@ -76,9 +76,9 @@
                 HorizontalAlignment="Left"
                 Margin="0,0,0,12" />
 
-        <Border Background="{StaticResource SurfaceContainerBrush}"
+        <Border Background="{DynamicResource SurfaceContainerBrush}"
                 CornerRadius="14"
-                BorderBrush="{StaticResource MicaBorderBrush}"
+                BorderBrush="{DynamicResource MicaBorderBrush}"
                 BorderThickness="1"
                 Padding="8"
                 MinHeight="120">
@@ -94,7 +94,7 @@
                                 <TextBlock Grid.Column="0"
                                            Text="{Binding}"
                                            FontSize="13"
-                                           Foreground="{StaticResource OnSurfaceBrush}"
+                                           Foreground="{DynamicResource OnSurfaceBrush}"
                                            VerticalAlignment="Center"
                                            TextWrapping="Wrap" />
                                 <Button Grid.Column="1"
@@ -112,7 +112,7 @@
 
         <TextBlock x:Name="StatusTextBlock"
                    Margin="0,16,0,0"
-                   Foreground="{StaticResource OnSurfaceVariantBrush}"
+                   Foreground="{DynamicResource OnSurfaceVariantBrush}"
                    FontSize="12"
                    TextWrapping="Wrap" />
     </StackPanel>

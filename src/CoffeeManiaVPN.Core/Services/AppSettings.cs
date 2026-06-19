@@ -31,6 +31,12 @@ public sealed class AppSettings : ISplitTunnelSettings
 
     public bool KillSwitchEnabled { get; set; }
 
+    public string Theme { get; set; } = "light";
+
+    public bool CompactSidebar { get; set; }
+
+    public bool SimplifiedAnimations { get; set; }
+
     public static int NormalizeAutoUpdateIntervalMinutes(int minutes) =>
         minutes switch
         {
@@ -44,6 +50,9 @@ public sealed class AppSettings : ISplitTunnelSettings
         string.Equals(mode, SplitTunnelModeProxyOnly, StringComparison.OrdinalIgnoreCase)
             ? SplitTunnelModeProxyOnly
             : SplitTunnelModeBypass;
+
+    public static string NormalizeTheme(string? theme) =>
+        string.Equals(theme, "dark", StringComparison.OrdinalIgnoreCase) ? "dark" : "light";
 
     public static string SettingsPath =>
         Path.Combine(
@@ -64,6 +73,7 @@ public sealed class AppSettings : ISplitTunnelSettings
             settings.AppSplitTunnelMode = NormalizeSplitTunnelMode(settings.AppSplitTunnelMode);
             settings.SiteSplitTunnelDomains ??= [];
             settings.AppSplitTunnelApps ??= [];
+            settings.Theme = NormalizeTheme(settings.Theme);
             return settings;
         }
         catch
@@ -76,6 +86,7 @@ public sealed class AppSettings : ISplitTunnelSettings
     {
         SiteSplitTunnelMode = NormalizeSplitTunnelMode(SiteSplitTunnelMode);
         AppSplitTunnelMode = NormalizeSplitTunnelMode(AppSplitTunnelMode);
+        Theme = NormalizeTheme(Theme);
         SiteSplitTunnelDomains = SiteSplitTunnelDomains
             .Where(static domain => !string.IsNullOrWhiteSpace(domain))
             .Select(static domain => domain.Trim())

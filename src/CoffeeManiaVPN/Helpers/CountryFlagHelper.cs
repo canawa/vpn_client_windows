@@ -18,10 +18,10 @@ public static class CountryFlagHelper
         if (Cache.TryGetValue(code, out var cached))
             return cached;
 
-        var path = Path.Combine(AppContext.BaseDirectory, "Assets", "Flags", $"{code}.png");
+        var path = Path.Combine(AppPaths.AssetsDirectory, "Flags", $"{code}.png");
         if (!File.Exists(path))
         {
-            path = Path.Combine(AppContext.BaseDirectory, "Assets", "Flags", "un.png");
+            path = Path.Combine(AppPaths.AssetsDirectory, "Flags", "un.png");
             if (!File.Exists(path))
                 return null;
         }

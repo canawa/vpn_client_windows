@@ -7,23 +7,25 @@ namespace CoffeeManiaVPN.Helpers;
 
 public static class AppIconHelper
 {
-    public static ImageSource LoadLogo(int size)
+    public static ImageSource LoadAppIcon(int preferredSize = 32)
     {
-        var pngPath = Path.Combine(AppContext.BaseDirectory, "Assets", "logo-white.png");
-        if (!File.Exists(pngPath))
-            throw new FileNotFoundException("Не найден файл logo-white.png.");
+        var icoPath = Path.Combine(AppPaths.AssetsDirectory, "app.ico");
+        if (!File.Exists(icoPath))
+            throw new FileNotFoundException("Не найден файл app.ico.", icoPath);
 
-        var image = new BitmapImage();
-        image.BeginInit();
-        image.CacheOption = BitmapCacheOption.OnLoad;
-        image.UriSource = new Uri(pngPath, UriKind.Absolute);
-        image.DecodePixelWidth = size;
-        image.DecodePixelHeight = size;
-        image.EndInit();
-        image.Freeze();
-        return image;
+        using var stream = File.OpenRead(icoPath);
+        var decoder = new IconBitmapDecoder(
+            stream,
+            BitmapCreateOptions.None,
+            BitmapCacheOption.OnLoad);
+
+        var frame = decoder.Frames
+            .OrderBy(iconFrame => Math.Abs(iconFrame.PixelWidth - preferredSize))
+            .First();
+        frame.Freeze();
+        return frame;
     }
 
     public static void ApplyWindowIcon(Window window) =>
-        window.Icon = LoadLogo(32);
+        window.Icon = LoadAppIcon(32);
 }

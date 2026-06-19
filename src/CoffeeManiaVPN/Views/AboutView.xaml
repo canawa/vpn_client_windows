@@ -6,7 +6,7 @@
     <StackPanel HorizontalAlignment="Center" Margin="0,24,0,0">
         <Border Width="88" Height="88"
                 CornerRadius="22"
-                Background="{StaticResource SurfaceContainerHighBrush}"
+                Background="{DynamicResource SurfaceContainerHighBrush}"
                 HorizontalAlignment="Center"
                 Margin="0,0,0,20">
             <controls:LogoMark Width="48" Height="48"
@@ -16,11 +16,11 @@
         <TextBlock Text="КОФЕМАНИЯ ВПН"
                    FontSize="22"
                    FontWeight="Bold"
-                   Foreground="{StaticResource OnSurfaceBrush}"
+                   Foreground="{DynamicResource OnSurfaceBrush}"
                    HorizontalAlignment="Center" />
         <TextBlock Text="v1.0.0"
                    FontSize="14"
-                   Foreground="{StaticResource OnSurfaceVariantBrush}"
+                   Foreground="{DynamicResource OnSurfaceVariantBrush}"
                    HorizontalAlignment="Center"
                    Margin="0,8,0,0" />
     </StackPanel>

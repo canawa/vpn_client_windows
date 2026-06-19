@@ -3,26 +3,84 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:CoffeeManiaVPN.Controls"
              Background="Transparent">
-    <Grid>
-        <StackPanel VerticalAlignment="Center">
-        <StackPanel HorizontalAlignment="Center" Margin="0,0,0,36">
+    <UserControl.Resources>
+        <CubicEase x:Key="SmoothEase" EasingMode="EaseInOut" />
+        <CubicEase x:Key="SmoothEaseOut" EasingMode="EaseOut" />
+
+        <Storyboard x:Key="ConnectingSpinStoryboard" RepeatBehavior="Forever">
+            <DoubleAnimation Storyboard.TargetName="ConnectingRingRotate"
+                             Storyboard.TargetProperty="Angle"
+                             From="0"
+                             To="360"
+                             Duration="0:0:1.15" />
+        </Storyboard>
+        <Storyboard x:Key="ConnectingPulseStoryboard"
+                    RepeatBehavior="Forever"
+                    AutoReverse="True">
+            <DoubleAnimation Storyboard.TargetName="ConnectingRingOuter"
+                             Storyboard.TargetProperty="Opacity"
+                             From="0.35"
+                             To="0.85"
+                             Duration="0:0:1.1">
+                <DoubleAnimation.EasingFunction>
+                    <StaticResource ResourceKey="SmoothEase" />
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation Storyboard.TargetName="ConnectingRingInner"
+                             Storyboard.TargetProperty="Opacity"
+                             From="0.6"
+                             To="1"
+                             Duration="0:0:1.1">
+                <DoubleAnimation.EasingFunction>
+                    <StaticResource ResourceKey="SmoothEase" />
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+    </UserControl.Resources>
+    <Grid x:Name="RootGrid"
+          SizeChanged="RootGrid_SizeChanged"
+          SnapsToDevicePixels="True"
+          UseLayoutRounding="True">
+        <ScrollViewer x:Name="HomeScrollViewer"
+                      VerticalScrollBarVisibility="Hidden"
+                      HorizontalScrollBarVisibility="Disabled"
+                      PanningMode="VerticalOnly">
+        <StackPanel x:Name="ContentPanel"
+                    MaxWidth="480"
+                    HorizontalAlignment="Center"
+                    Margin="0,4,0,12">
+        <StackPanel x:Name="StatusHeaderPanel"
+                    HorizontalAlignment="Center"
+                    Margin="0,0,0,28">
             <TextBlock Text="СТАТУС"
                        FontSize="12"
                        FontWeight="Bold"
-                       Foreground="{StaticResource OnSurfaceVariantBrush}"
-                       HorizontalAlignment="Center" />
+                       Foreground="{DynamicResource OnSurfaceVariantBrush}"
+                       HorizontalAlignment="Center"
+                       TextOptions.TextFormattingMode="Display"
+                       TextOptions.TextRenderingMode="ClearType" />
             <TextBlock x:Name="StatusTextBlock"
                        Text="Отключено"
                        FontSize="36"
                        FontWeight="Bold"
-                       Foreground="{StaticResource OnSurfaceBrush}"
+                       Foreground="{DynamicResource OnSurfaceBrush}"
                        HorizontalAlignment="Center"
-                       Margin="0,8,0,0" />
+                       Margin="0,8,0,0"
+                       TextOptions.TextFormattingMode="Display"
+                       TextOptions.TextRenderingMode="ClearType" />
         </StackPanel>
 
-        <Grid HorizontalAlignment="Center"
-              Margin="0,0,0,24">
+        <Viewbox x:Name="ConnectAreaViewbox"
+                 Stretch="Uniform"
+                 StretchDirection="DownOnly"
+                 MaxWidth="220"
+                 MaxHeight="220"
+                 HorizontalAlignment="Center"
+                 Margin="0,0,0,24">
+        <Grid Width="220"
+              Height="220">
             <Button x:Name="ConnectButton"
+                    Panel.ZIndex="0"
                     Width="200"
                     Height="200"
                     HorizontalAlignment="Center"
@@ -36,44 +94,143 @@
                               SnapsToDevicePixels="True"
                               UseLayoutRounding="True"
                               RenderTransformOrigin="0.5,0.5">
-                            <Border x:Name="RingLayer"
-                                    Width="200"
-                                    Height="200"
-                                    CornerRadius="100"
-                                    Background="{StaticResource ConnectButtonBorderBrush}" />
-                            <Border Width="196"
-                                    Height="196"
-                                    CornerRadius="98"
-                                    Background="{StaticResource ConnectButtonFillBrush}"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center" />
+                            <Grid.RenderTransform>
+                                <ScaleTransform x:Name="ConnectButtonScale" ScaleX="1" ScaleY="1" />
+                            </Grid.RenderTransform>
+                            <Ellipse x:Name="ConnectRing"
+                                     Width="200"
+                                     Height="200"
+                                     Stroke="{DynamicResource ConnectButtonRingBrush}"
+                                     StrokeThickness="3"
+                                     Fill="Transparent" />
                             <controls:LogoMark x:Name="ConnectLogo"
                                                Width="92"
                                                Height="92"
-                                               IconBrush="{StaticResource OnSurfaceBrush}"
+                                               IconBrush="{DynamicResource ConnectButtonIconBrush}"
                                                HorizontalAlignment="Center"
                                                VerticalAlignment="Center" />
                         </Grid>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="RingLayer" Property="Background" Value="#3A302C" />
-                            </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter Property="RenderTransform">
-                                    <Setter.Value>
-                                        <ScaleTransform ScaleX="0.97" ScaleY="0.97" />
-                                    </Setter.Value>
-                                </Setter>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="ConnectButtonScale"
+                                                             Storyboard.TargetProperty="ScaleX"
+                                                             To="0.97"
+                                                             Duration="0:0:0.14">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="ConnectButtonScale"
+                                                             Storyboard.TargetProperty="ScaleY"
+                                                             To="0.97"
+                                                             Duration="0:0:0.14">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="ConnectButtonScale"
+                                                             Storyboard.TargetProperty="ScaleX"
+                                                             To="1"
+                                                             Duration="0:0:0.18">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="ConnectButtonScale"
+                                                             Storyboard.TargetProperty="ScaleY"
+                                                             To="1"
+                                                             Duration="0:0:0.18">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Button.Template>
             </Button>
+            <Grid x:Name="ConnectingRingFadeHost"
+                  Panel.ZIndex="1"
+                  Width="220"
+                  Height="220"
+                  Visibility="Collapsed"
+                  Opacity="0"
+                  IsHitTestVisible="False"
+                  RenderTransformOrigin="0.5,0.5"
+                  SnapsToDevicePixels="True">
+                <Grid x:Name="ConnectingRingHost"
+                      Width="220"
+                      Height="220"
+                      RenderTransformOrigin="0.5,0.5">
+                    <Grid.RenderTransform>
+                        <RotateTransform x:Name="ConnectingRingRotate" Angle="0" />
+                    </Grid.RenderTransform>
+                    <Ellipse x:Name="ConnectingRingOuter"
+                             Width="220"
+                             Height="220"
+                             Stroke="{DynamicResource TertiaryBrush}"
+                             StrokeThickness="3"
+                             StrokeDashArray="10 18"
+                             Opacity="0.45"
+                             Fill="Transparent" />
+                    <Ellipse x:Name="ConnectingRingInner"
+                             Width="208"
+                             Height="208"
+                             Stroke="{DynamicResource TertiaryBrush}"
+                             StrokeThickness="8"
+                             StrokeDashArray="22 48"
+                             Fill="Transparent"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center" />
+                </Grid>
+            </Grid>
         </Grid>
+        </Viewbox>
+
+        <Button x:Name="BuySubscriptionButton"
+                Content="Купить подписку на сайте"
+                Click="BuySubscriptionButton_Click"
+                Style="{StaticResource PrimaryActionButtonStyle}"
+                Effect="{x:Null}"
+                SnapsToDevicePixels="True"
+                UseLayoutRounding="True"
+                TextOptions.TextFormattingMode="Display"
+                TextOptions.TextRenderingMode="ClearType"
+                HorizontalAlignment="Center"
+                MinWidth="280"
+                Margin="0,0,0,10"
+                Visibility="Collapsed" />
+        <Button x:Name="PasteSubscriptionButton"
+                Content="Вставить из буфера"
+                Click="PasteSubscriptionButton_Click"
+                Style="{StaticResource SecondaryActionButtonStyle}"
+                Effect="{x:Null}"
+                SnapsToDevicePixels="True"
+                UseLayoutRounding="True"
+                TextOptions.TextFormattingMode="Display"
+                TextOptions.TextRenderingMode="ClearType"
+                HorizontalAlignment="Center"
+                MinWidth="280"
+                Margin="0,0,0,24"
+                Visibility="Collapsed" />
 
         <Grid x:Name="TrafficStatsPanel"
               Margin="0,0,0,28"
-              Visibility="Collapsed">
+              Height="28"
+              Opacity="0"
+              IsHitTestVisible="False">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -87,32 +244,27 @@
                 <TextBlock Text="↑"
                            FontSize="14"
                            FontWeight="Bold"
-                           Foreground="{StaticResource TertiaryBrush}"
+                           Foreground="{DynamicResource TertiaryBrush}"
                            Margin="0,0,6,0"
                            VerticalAlignment="Center" />
                 <TextBlock x:Name="UploadSpeedTextBlock"
                            Text="0 KB/s"
                            FontSize="15"
                            FontWeight="Bold"
-                           Foreground="{StaticResource OnSurfaceBrush}"
+                           Foreground="{DynamicResource OnSurfaceBrush}"
                            VerticalAlignment="Center" />
             </StackPanel>
 
             <StackPanel Grid.Column="1"
-                        Orientation="Horizontal"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Margin="28,0">
-                <TextBlock Text="◷"
-                           FontSize="14"
-                           Foreground="{StaticResource OnSurfaceVariantBrush}"
-                           Margin="0,0,6,0"
-                           VerticalAlignment="Center" />
                 <TextBlock x:Name="ConnectionTimerTextBlock"
                            Text="00:00"
                            FontSize="15"
                            FontWeight="Bold"
-                           Foreground="{StaticResource OnSurfaceBrush}"
+                           Foreground="{DynamicResource OnSurfaceBrush}"
+                           HorizontalAlignment="Center"
                            VerticalAlignment="Center" />
             </StackPanel>
 
@@ -123,19 +275,20 @@
                 <TextBlock Text="↓"
                            FontSize="14"
                            FontWeight="Bold"
-                           Foreground="{StaticResource TertiaryBrush}"
+                           Foreground="{DynamicResource TertiaryBrush}"
                            Margin="0,0,6,0"
                            VerticalAlignment="Center" />
                 <TextBlock x:Name="DownloadSpeedTextBlock"
                            Text="0 KB/s"
                            FontSize="15"
                            FontWeight="Bold"
-                           Foreground="{StaticResource OnSurfaceBrush}"
+                           Foreground="{DynamicResource OnSurfaceBrush}"
                            VerticalAlignment="Center" />
             </StackPanel>
         </Grid>
 
-        <Border Style="{StaticResource GlassCardStyle}"
+        <Border x:Name="ServerCardBorder"
+                Style="{StaticResource GlassCardStyle}"
                 Padding="18"
                 Margin="0,0,0,16"
                 Cursor="Hand"
@@ -147,28 +300,29 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <controls:CountryFlag x:Name="ServerFlag"
-                                      Margin="0,0,14,0" />
-                <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                                      Margin="0,0,8,0" />
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
                     <TextBlock Text="ТЕКУЩИЙ СЕРВЕР"
                                FontSize="11"
                                FontWeight="Bold"
-                               Foreground="{StaticResource OnSurfaceVariantBrush}" />
+                               Foreground="{DynamicResource OnSurfaceVariantBrush}" />
                     <controls:EmojiTextBlock x:Name="CurrentServerTextBlock"
                                              SourceText="Не выбран"
                                              FontSize="17"
                                              FontWeight="SemiBold"
-                                             TextBrush="{StaticResource OnSurfaceBrush}"
+                                             TextBrush="{DynamicResource OnSurfaceBrush}"
                                              Margin="0,4,0,0" />
                 </StackPanel>
                 <TextBlock Grid.Column="2"
                            Text="›"
                            FontSize="22"
-                           Foreground="{StaticResource PrimaryBrush}"
+                           Foreground="{DynamicResource PrimaryBrush}"
                            VerticalAlignment="Center" />
             </Grid>
         </Border>
 
-        <controls:RoundedImage Style="{StaticResource ImageBannerStyle}"
+        <controls:RoundedImage x:Name="PromoBanner"
+                               Style="{StaticResource ImageBannerStyle}"
                                CornerRadius="24"
                                HorizontalAlignment="Center"
                                MouseLeftButtonUp="PromoBanner_Click">
@@ -177,5 +331,6 @@
             </controls:RoundedImage.Source>
         </controls:RoundedImage>
         </StackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>

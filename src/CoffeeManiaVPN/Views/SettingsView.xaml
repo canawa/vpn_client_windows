@@ -12,7 +12,7 @@
         <Style x:Key="SettingsItemChevronStyle" TargetType="TextBlock" BasedOn="{StaticResource SettingsItemTextStyle}">
             <Setter Property="Margin" Value="0" />
             <Setter Property="FontSize" Value="20" />
-            <Setter Property="Foreground" Value="{StaticResource OnSurfaceVariantBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource OnSurfaceVariantBrush}" />
         </Style>
     </UserControl.Resources>
 
@@ -29,7 +29,7 @@
                     <controls:UiIcon Grid.Column="0"
                                      Kind="Globe"
                                      IconSize="20"
-                                     IconBrush="{StaticResource PrimaryBrush}"
+                                     IconBrush="{DynamicResource PrimaryBrush}"
                                      HorizontalAlignment="Center"
                                      VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1"
@@ -40,7 +40,7 @@
                                Style="{StaticResource SettingsItemChevronStyle}" />
                 </Grid>
             </Button>
-            <Border Height="1" Background="{StaticResource DividerBrush}" />
+            <Border Height="1" Background="{DynamicResource DividerBrush}" />
 
             <Button Style="{StaticResource SettingsListButtonStyle}" Click="ConnectionButton_Click">
                 <Grid VerticalAlignment="Center">
@@ -52,7 +52,7 @@
                     <controls:UiIcon Grid.Column="0"
                                      Kind="Connection"
                                      IconSize="20"
-                                     IconBrush="{StaticResource PrimaryBrush}"
+                                     IconBrush="{DynamicResource PrimaryBrush}"
                                      HorizontalAlignment="Center"
                                      VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1"
@@ -63,7 +63,7 @@
                                Style="{StaticResource SettingsItemChevronStyle}" />
                 </Grid>
             </Button>
-            <Border Height="1" Background="{StaticResource DividerBrush}" />
+            <Border Height="1" Background="{DynamicResource DividerBrush}" />
 
             <Button Style="{StaticResource SettingsListButtonStyle}" Click="SubscriptionButton_Click">
                 <Grid VerticalAlignment="Center">
@@ -75,7 +75,7 @@
                     <controls:UiIcon Grid.Column="0"
                                      Kind="Subscription"
                                      IconSize="20"
-                                     IconBrush="{StaticResource PrimaryBrush}"
+                                     IconBrush="{DynamicResource PrimaryBrush}"
                                      HorizontalAlignment="Center"
                                      VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1"
@@ -86,9 +86,9 @@
                                Style="{StaticResource SettingsItemChevronStyle}" />
                 </Grid>
             </Button>
-            <Border Height="1" Background="{StaticResource DividerBrush}" />
+            <Border Height="1" Background="{DynamicResource DividerBrush}" />
 
-            <Button Style="{StaticResource SettingsListButtonStyle}" IsEnabled="False" Opacity="0.55">
+            <Button Style="{StaticResource SettingsListButtonStyle}" Click="ThemeButton_Click">
                 <Grid VerticalAlignment="Center">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="40" />
@@ -98,18 +98,18 @@
                     <controls:UiIcon Grid.Column="0"
                                      Kind="Theme"
                                      IconSize="20"
-                                     IconBrush="{StaticResource PrimaryBrush}"
+                                     IconBrush="{DynamicResource PrimaryBrush}"
                                      HorizontalAlignment="Center"
                                      VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1"
-                               Text="Тема"
+                               Text="Визуал"
                                Style="{StaticResource SettingsItemTextStyle}" />
                     <TextBlock Grid.Column="2"
                                Text="›"
                                Style="{StaticResource SettingsItemChevronStyle}" />
                 </Grid>
             </Button>
-            <Border Height="1" Background="{StaticResource DividerBrush}" />
+            <Border Height="1" Background="{DynamicResource DividerBrush}" />
 
             <Button Style="{StaticResource SettingsListButtonStyle}" Click="LogsButton_Click">
                 <Grid VerticalAlignment="Center">
@@ -121,7 +121,7 @@
                     <controls:UiIcon Grid.Column="0"
                                      Kind="Logs"
                                      IconSize="20"
-                                     IconBrush="{StaticResource PrimaryBrush}"
+                                     IconBrush="{DynamicResource PrimaryBrush}"
                                      HorizontalAlignment="Center"
                                      VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1"
@@ -132,7 +132,7 @@
                                Style="{StaticResource SettingsItemChevronStyle}" />
                 </Grid>
             </Button>
-            <Border Height="1" Background="{StaticResource DividerBrush}" />
+            <Border Height="1" Background="{DynamicResource DividerBrush}" />
 
             <Button Style="{StaticResource SettingsListButtonStyle}" Click="AboutButton_Click">
                 <Grid VerticalAlignment="Center">
@@ -144,7 +144,7 @@
                     <controls:UiIcon Grid.Column="0"
                                      Kind="Info"
                                      IconSize="20"
-                                     IconBrush="{StaticResource PrimaryBrush}"
+                                     IconBrush="{DynamicResource PrimaryBrush}"
                                      HorizontalAlignment="Center"
                                      VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1"
@@ -155,7 +155,7 @@
                                Style="{StaticResource SettingsItemChevronStyle}" />
                 </Grid>
             </Button>
-            <Border Height="1" Background="{StaticResource DividerBrush}" />
+            <Border Height="1" Background="{DynamicResource DividerBrush}" />
 
             <Button Style="{StaticResource SettingsListButtonStyle}" Click="CloseAppButton_Click">
                 <Grid VerticalAlignment="Center">
@@ -166,13 +166,13 @@
                     <controls:UiIcon Grid.Column="0"
                                      Kind="Close"
                                      IconSize="18"
-                                     IconBrush="{StaticResource ErrorBrush}"
+                                     IconBrush="{DynamicResource ErrorBrush}"
                                      HorizontalAlignment="Center"
                                      VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1"
                                Text="Закрыть приложение"
                                FontSize="16"
-                               Foreground="{StaticResource ErrorBrush}"
+                               Foreground="{DynamicResource ErrorBrush}"
                                VerticalAlignment="Center"
                                Margin="4,0,0,0" />
                 </Grid>
@@ -180,7 +180,7 @@
 
             <TextBlock x:Name="StatusTextBlock"
                        Margin="8,20,0,0"
-                       Foreground="{StaticResource OnSurfaceVariantBrush}"
+                       Foreground="{DynamicResource OnSurfaceVariantBrush}"
                        FontSize="12"
                        TextWrapping="Wrap" />
         </StackPanel>

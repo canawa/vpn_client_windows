@@ -1,6 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\CoffeeManiaVPN.Core\CoffeeManiaVPN.Core.csproj" />
   </ItemGroup>
 
@@ -10,12 +15,25 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>CoffeeManiaVPN</AssemblyName>
     <RootNamespace>CoffeeManiaVPN</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <Version>1.0.0</Version>
+    <Company>КОФЕМАНИЯ ВПН</Company>
+    <Product>КОФЕМАНИЯ ВПН</Product>
+    <AssemblyTitle>КОФЕМАНИЯ ВПН</AssemblyTitle>
+    <Authors>КОФЕМАНИЯ ВПН</Authors>
+    <Copyright>© КОФЕМАНИЯ ВПН</Copyright>
+    <Description>Клиент КОФЕМАНИЯ ВПН</Description>
     <CopyRetryCount>20</CopyRetryCount>
     <CopyRetryDelayMilliseconds>500</CopyRetryDelayMilliseconds>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
   <Target Name="StopRunningCoffeeManiaVpn"
@@ -30,10 +48,17 @@
 
   <ItemGroup>
     <Resource Include="Assets\logo-white.svg" />
+    <Resource Include="Assets\logo-black.svg" />
     <Content Include="Assets\logo-white.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Assets\logo-black.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Assets\logo-white.svg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\logo-black.svg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Assets\Flags\**\*">
@@ -51,7 +76,10 @@
     <Content Include="Assets\app.ico" Condition="Exists('Assets\app.ico')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <None Include="..\..\xray\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="xray" />
+    <Content Include="Views\notification_sound.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\xray\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="xray" />
   </ItemGroup>
 
 </Project>

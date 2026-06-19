@@ -8,6 +8,7 @@ public partial class SubscriptionSettingsView : UserControl
 {
     public event EventHandler? RefreshRequested;
     public event EventHandler? DeleteRequested;
+    public event EventHandler? PasteFromClipboardRequested;
     public event EventHandler<bool>? AutoUpdateChanged;
     public event EventHandler<int>? AutoUpdateIntervalChanged;
 
@@ -17,7 +18,11 @@ public partial class SubscriptionSettingsView : UserControl
     public SubscriptionSettingsView()
     {
         InitializeComponent();
+        _suppressAutoUpdateEvent = true;
+        AutoUpdateCheckBox.IsChecked = true;
+        _suppressAutoUpdateEvent = false;
         UpdateIntervalButtons();
+        UpdateAutoUpdateVisibility();
     }
 
     public string SubscriptionUrl
@@ -49,13 +54,40 @@ public partial class SubscriptionSettingsView : UserControl
         }
     }
 
+    public void SetSubscriptionConfigured(bool configured)
+    {
+        EmptySubscriptionPanel.Visibility = configured ? Visibility.Collapsed : Visibility.Visible;
+        ConfiguredSubscriptionPanel.Visibility = configured ? Visibility.Visible : Visibility.Collapsed;
+    }
+
     public void SetStatus(string message) => StatusTextBlock.Text = message;
 
     public void SetBusy(bool busy)
     {
         DeleteButton.IsEnabled = !busy;
         RefreshButton.IsEnabled = !busy;
+        PasteButton.IsEnabled = !busy;
+        BuySubscriptionButton.IsEnabled = !busy;
         SubscriptionUrlTextBox.IsEnabled = !busy;
+    }
+
+    private void PasteButton_Click(object sender, RoutedEventArgs e) =>
+        PasteFromClipboardRequested?.Invoke(this, EventArgs.Empty);
+
+    private void BuySubscriptionButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "https://coffeemaniavpn.ru/register",
+                UseShellExecute = true
+            });
+        }
+        catch
+        {
+            // ignored
+        }
     }
 
     private void RefreshButton_Click(object sender, RoutedEventArgs e) =>
@@ -87,6 +119,9 @@ public partial class SubscriptionSettingsView : UserControl
 
     private void UpdateAutoUpdateVisibility()
     {
+        if (AutoUpdateIntervalPanel is null || AutoUpdateCheckBox is null)
+            return;
+
         AutoUpdateIntervalPanel.Visibility = AutoUpdateCheckBox.IsChecked == true
             ? Visibility.Visible
             : Visibility.Collapsed;

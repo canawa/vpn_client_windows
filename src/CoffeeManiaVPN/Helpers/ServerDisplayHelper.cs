@@ -10,7 +10,7 @@ public static class ServerDisplayHelper
         (["ЛАТВ", "LATV", "LATVIJA"], "lv", "LV"),
         (["ПОЛЬ", "POLAND", "POLSK", "WARSZ"], "pl", "PL"),
         (["ГЕРМ", "GERMAN", "DEUTSCH", "АНТИЗАГЛУШ"], "de", "DE"),
-        (["ФИНЛ", "FINLAND", "SUOMI", "ИГРОВ"], "fi", "FI"),
+        (["ФИНЛ", "FINLAND", "SUOMI", "HELSINK"], "fi", "FI"),
         (["НИДЕР", "NETHER", "HOLLAND", "AMSTER"], "nl", "NL"),
         (["ЭСТОН", "ESTON", "TALLINN"], "ee", "EE"),
         (["ЛИТВ", "LITHU", "VILNI"], "lt", "LT"),

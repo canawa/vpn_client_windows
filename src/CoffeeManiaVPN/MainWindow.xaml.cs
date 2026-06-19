@@ -1,9 +1,12 @@
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Shell;
 using System.Windows.Threading;
 using CoffeeManiaVPN.Core.Models;
@@ -16,6 +19,20 @@ namespace CoffeeManiaVPN;
 
 public partial class MainWindow : Window
 {
+    private const double SidebarWidthExpanded = 268;
+    private const double SidebarWidthCompact = 76;
+    private const double SidebarDesignHeight = 320;
+    private const double MinWindowWidthExpanded = 620;
+    private const double MinWindowWidthCompact = 460;
+    private const double MinWindowHeightValue = 440;
+
+    private double _sidebarBaseWidth = SidebarWidthExpanded;
+    private double _sidebarDesignWidth = 228;
+
+    private TranslateTransform _pageHostTransform = null!;
+    private bool _isPageTransitioning;
+    private Page _pendingTransitionPage;
+
     private readonly AppSettings _settings;
     private readonly DeviceIdentityService _deviceIdentity;
     private readonly SubscriptionService _subscriptionService;
@@ -38,23 +55,32 @@ public partial class MainWindow : Window
     private readonly SubscriptionSettingsView _subscriptionSettingsView = new();
     private readonly LogsView _logsView;
     private readonly AboutView _aboutView = new();
+    private readonly ThemeSettingsView _themeSettingsView = new();
 
     private IReadOnlyList<ProxyNode> _nodes = Array.Empty<ProxyNode>();
     private SubscriptionInfo _subscriptionInfo = SubscriptionInfo.Empty;
     private ProxyNode? _selectedNode;
     private bool _isConnected;
     private Page _currentPage = Page.Home;
+    private bool _homeSubscriptionImportPending;
+    private readonly SemaphoreSlim _connectionGate = new(1, 1);
+    private readonly TrayIconService _trayIcon;
 
     public MainWindow()
     {
         InitializeComponent();
+        _pageHostTransform = new TranslateTransform();
+        PageHost.RenderTransform = _pageHostTransform;
+        PageHost.RenderTransformOrigin = new Point(0.5, 0.5);
+        RenderOptions.SetBitmapScalingMode(PageHost, BitmapScalingMode.HighQuality);
+        RenderOptions.SetCachingHint(PageHost, CachingHint.Cache);
         SourceInitialized += OnSourceInitialized;
         AppIconHelper.ApplyWindowIcon(this);
 
         _settings = AppSettings.Load();
         _deviceIdentity = new DeviceIdentityService(_settings);
         _subscriptionService = new SubscriptionService(_deviceIdentity);
-        _xrayDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "xray"));
+        _xrayDirectory = AppPaths.XrayDirectory;
         _logsView = new LogsView(_appLog);
 
         _trafficTimer = new DispatcherTimer
@@ -67,7 +93,14 @@ public partial class MainWindow : Window
         _subscriptionAutoUpdateTimer.Tick += async (_, _) => await RefreshSubscriptionAsync();
 
         WireViews();
+        _themeSettingsView.Load(ThemeManager.Parse(_settings.Theme), _settings.CompactSidebar, _settings.SimplifiedAnimations);
+        ApplyMotionPreferences(_settings.SimplifiedAnimations);
+        ApplyCompactSidebar(_settings.CompactSidebar);
+        UpdateResponsiveLayout();
         NavigateTo(Page.Home);
+
+        _trayIcon = new TrayIconService(this, ToggleConnection);
+        _trayIcon.UpdateConnectionState(false);
 
         _appLog.LoadExisting();
         _appLog.Append("Приложение запущено.");
@@ -82,9 +115,136 @@ public partial class MainWindow : Window
         _subscriptionSettingsView.AutoUpdateIntervalMinutes = _settings.AutoUpdateIntervalMinutes;
         ConfigureSubscriptionAutoUpdate();
         UpdateCurrentServerDisplay();
+        UpdateSubscriptionAvailability();
 
         if (!string.IsNullOrWhiteSpace(_settings.SubscriptionUrl))
             _ = RefreshSubscriptionAsync();
+
+        BrandIntegrityGuard.Attach(this, () => BrandTextBlock.Text);
+    }
+
+    public void ActivateFromExternalRequest()
+    {
+        Dispatcher.Invoke(() =>
+        {
+            _trayIcon.ShowWindow();
+            NavigateTo(Page.Home);
+        });
+    }
+
+    public void HandleUrlScheme(string rawUrl)
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.BeginInvoke(() => HandleUrlScheme(rawUrl));
+            return;
+        }
+
+        if (!UrlSchemeParser.TryParse(rawUrl, out var request))
+        {
+            _appLog.Append($"Не удалось разобрать URL-схему: {rawUrl}");
+            return;
+        }
+
+        _ = HandleUrlSchemeAsync(request);
+    }
+
+    private async Task HandleUrlSchemeAsync(UrlSchemeRequest request)
+    {
+        ActivateFromExternalRequest();
+        _appLog.Append($"URL-схема: cfm://{request.Action.ToString().ToLowerInvariant()}");
+
+        try
+        {
+            switch (request.Action)
+            {
+                case UrlSchemeAction.Connect:
+                    if (!_isConnected)
+                        await ToggleConnectionAsync();
+                    break;
+
+                case UrlSchemeAction.Disconnect:
+                    if (_isConnected)
+                        await ToggleConnectionAsync();
+                    break;
+
+                case UrlSchemeAction.Toggle:
+                    await ToggleConnectionAsync();
+                    break;
+
+                case UrlSchemeAction.Import:
+                case UrlSchemeAction.Add:
+                    await ImportSubscriptionFromUrlSchemeAsync(request.Payload);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            _appLog.Append($"Ошибка URL-схемы: {ex.Message}");
+            _settingsView.SetStatus(ex.Message);
+            _homeSubscriptionImportPending = false;
+            if (Dispatcher.CheckAccess())
+                _homeView.SetSubscriptionImporting(false);
+            else
+                Dispatcher.Invoke(() => _homeView.SetSubscriptionImporting(false));
+        }
+    }
+
+    private async Task ImportSubscriptionFromUrlSchemeAsync(string? payload)
+    {
+        NavigateTo(Page.Home);
+        await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Loaded);
+        _homeView.SetSubscriptionImporting(true, "Обработка ссылки...");
+        _homeSubscriptionImportPending = true;
+
+        try
+        {
+            _appLog.Append($"Импорт подписки: {payload ?? "(пусто)"}");
+
+            var subscriptionUrl = UrlSchemeParser.ResolveSubscriptionUrl(payload);
+            if (string.IsNullOrWhiteSpace(subscriptionUrl))
+            {
+                var message = "Не удалось распознать ссылку подписки из URL-схемы.";
+                _settingsView.SetStatus(message);
+                _subscriptionSettingsView.SetStatus(message);
+                _appLog.Append(message);
+                NavigateTo(Page.Subscription);
+                return;
+            }
+
+            _homeView.UpdateSubscriptionImportStatus("Загрузка подписки...");
+            _appLog.Append($"Подписка из URL-схемы: {subscriptionUrl}");
+            await ApplySubscriptionUrlAsync(subscriptionUrl).ConfigureAwait(true);
+        }
+        finally
+        {
+            EndHomeSubscriptionImportIfPending();
+        }
+    }
+
+    private void EndHomeSubscriptionImportIfPending()
+    {
+        if (!_homeSubscriptionImportPending)
+            return;
+
+        _homeSubscriptionImportPending = false;
+
+        if (Dispatcher.CheckAccess())
+        {
+            _homeView.SetSubscriptionImporting(false);
+            return;
+        }
+
+        Dispatcher.Invoke(() => _homeView.SetSubscriptionImporting(false));
+    }
+
+    private async Task ApplySubscriptionUrlAsync(string subscriptionUrl)
+    {
+        _subscriptionSettingsView.SetSubscriptionConfigured(true);
+        _subscriptionSettingsView.SubscriptionUrl = subscriptionUrl;
+        _settings.SubscriptionUrl = subscriptionUrl;
+        _settings.Save();
+        await RefreshSubscriptionAsync();
     }
 
     private enum Page
@@ -98,27 +258,46 @@ public partial class MainWindow : Window
         ConnectionKillSwitch,
         Subscription,
         Logs,
-        About
+        About,
+        Theme
     }
 
     private void WireViews()
     {
         _homeView.ConnectToggleRequested += (_, _) => ToggleConnection();
         _homeView.OpenServersRequested += (_, _) => NavigateTo(Page.Servers);
+        _homeView.PasteSubscriptionRequested += async (_, _) => await PasteSubscriptionFromClipboardAsync();
 
         _serversView.RefreshRequested += async (_, _) => await RefreshSubscriptionAsync();
         _serversView.PingRequested += async (_, _) => await PingServersAsync();
-        _serversView.ServerSelected += (_, node) => SelectServer(node);
+        _serversView.ServerSelected += (_, node) => OnServerSelected(node);
+        _serversView.ServerReconnectRequested += (_, node) => OnServerReconnectRequested(node);
 
         _settingsView.OpenServersRequested += (_, _) => NavigateTo(Page.Servers);
         _settingsView.OpenConnectionRequested += (_, _) => NavigateTo(Page.Connection);
         _settingsView.OpenSubscriptionRequested += (_, _) => NavigateTo(Page.Subscription);
         _settingsView.OpenLogsRequested += (_, _) => NavigateTo(Page.Logs);
         _settingsView.OpenAboutRequested += (_, _) => NavigateTo(Page.About);
+        _settingsView.OpenThemeRequested += (_, _) => NavigateTo(Page.Theme);
         _settingsView.CloseAppRequested += (_, _) => Close();
+
+        _themeSettingsView.ThemeChanged += (_, theme) => ApplyTheme(theme);
+        _themeSettingsView.CompactSidebarChanged += (_, enabled) =>
+        {
+            _settings.CompactSidebar = enabled;
+            _settings.Save();
+            ApplyCompactSidebar(enabled);
+        };
+        _themeSettingsView.SimplifiedAnimationsChanged += (_, enabled) =>
+        {
+            _settings.SimplifiedAnimations = enabled;
+            _settings.Save();
+            ApplyMotionPreferences(enabled);
+        };
 
         _subscriptionSettingsView.RefreshRequested += async (_, _) => await RefreshSubscriptionAsync();
         _subscriptionSettingsView.DeleteRequested += async (_, _) => await DeleteSubscriptionAsync();
+        _subscriptionSettingsView.PasteFromClipboardRequested += async (_, _) => await PasteSubscriptionFromClipboardAsync();
         _subscriptionSettingsView.AutoUpdateChanged += (_, enabled) =>
         {
             _settings.AutoUpdateSubscription = enabled;
@@ -194,6 +373,79 @@ public partial class MainWindow : Window
 
     private void NavigateTo(Page page)
     {
+        if (!_isPageTransitioning && page == _currentPage && PageHost.Content is not null)
+        {
+            ApplyPageChrome(page);
+            return;
+        }
+
+        if (!IsLoaded || PageHost.Content is null || MotionPreferences.SimplifiedAnimations)
+        {
+            ApplyPageContent(page);
+            ApplyPageChrome(page);
+            PageHost.Opacity = 1;
+            PageHost.CacheMode = null;
+            _isPageTransitioning = false;
+            return;
+        }
+
+        _pendingTransitionPage = page;
+
+        if (_isPageTransitioning)
+            return;
+
+        BeginPageTransition();
+    }
+
+    private void BeginPageTransition()
+    {
+        _isPageTransitioning = true;
+        PageHost.CacheMode = new BitmapCache(1.0);
+
+        PageHost.BeginAnimation(UIElement.OpacityProperty, null);
+        _pageHostTransform.Y = 0;
+        _pageHostTransform.BeginAnimation(TranslateTransform.YProperty, null);
+
+        var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
+        var fadeOut = new DoubleAnimation(0.9, TimeSpan.FromMilliseconds(120))
+        {
+            EasingFunction = ease,
+            FillBehavior = FillBehavior.HoldEnd
+        };
+
+        fadeOut.Completed += (_, _) =>
+        {
+            var page = _pendingTransitionPage;
+            ApplyPageContent(page);
+            ApplyPageChrome(page);
+
+            PageHost.Opacity = 0.9;
+
+            var fadeIn = new DoubleAnimation(1, TimeSpan.FromMilliseconds(240))
+            {
+                EasingFunction = ease,
+                FillBehavior = FillBehavior.Stop
+            };
+
+            fadeIn.Completed += (_, _) =>
+            {
+                PageHost.BeginAnimation(UIElement.OpacityProperty, null);
+                PageHost.Opacity = 1;
+                PageHost.CacheMode = null;
+                _isPageTransitioning = false;
+
+                if (_pendingTransitionPage != _currentPage)
+                    BeginPageTransition();
+            };
+
+            PageHost.BeginAnimation(UIElement.OpacityProperty, fadeIn);
+        };
+
+        PageHost.BeginAnimation(UIElement.OpacityProperty, fadeOut);
+    }
+
+    private void ApplyPageContent(Page page)
+    {
         _currentPage = page;
 
         PageHost.Content = page switch
@@ -208,6 +460,7 @@ public partial class MainWindow : Window
             Page.Subscription => _subscriptionSettingsView,
             Page.Logs => _logsView,
             Page.About => _aboutView,
+            Page.Theme => _themeSettingsView,
             _ => _homeView
         };
 
@@ -229,7 +482,14 @@ public partial class MainWindow : Window
         {
             _killSwitchSettingsView.Load(_settings.KillSwitchEnabled, _killSwitch.IsEngaged);
         }
+        else if (page == Page.Theme)
+        {
+            _themeSettingsView.Load(ThemeManager.Parse(_settings.Theme), _settings.CompactSidebar, _settings.SimplifiedAnimations);
+        }
+    }
 
+    private void ApplyPageChrome(Page page)
+    {
         PageTitleTextBlock.Text = page switch
         {
             Page.Home => "Главная",
@@ -242,6 +502,7 @@ public partial class MainWindow : Window
             Page.Subscription => "Подписка",
             Page.Logs => "Логи",
             Page.About => "О КОФЕМАНИЯ ВПН",
+            Page.Theme => "Визуал",
             _ => "Главная"
         };
 
@@ -251,7 +512,8 @@ public partial class MainWindow : Window
             or Page.ConnectionKillSwitch
             or Page.Subscription
             or Page.Logs
-            or Page.About;
+            or Page.About
+            or Page.Theme;
         BackButton.Visibility = isSubPage ? Visibility.Visible : Visibility.Collapsed;
 
         NavHomeButton.Style = page == Page.Home
@@ -268,6 +530,7 @@ public partial class MainWindow : Window
             or Page.Subscription
             or Page.Logs
             or Page.About
+            or Page.Theme
             ? (Style)FindResource("NavPillActiveButtonStyle")
             : (Style)FindResource("NavPillButtonStyle");
     }
@@ -280,8 +543,114 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (_currentPage is Page.Connection or Page.Subscription or Page.Logs or Page.About)
+        if (_currentPage is Page.Connection or Page.Subscription or Page.Logs or Page.About or Page.Theme)
             NavigateTo(Page.Settings);
+    }
+
+    private void ApplyTheme(AppTheme theme)
+    {
+        ThemeManager.Apply(theme);
+        _settings.Theme = ThemeManager.ToSettingValue(theme);
+        _settings.Save();
+        _themeSettingsView.Load(theme, _settings.CompactSidebar, _settings.SimplifiedAnimations);
+        ApplyWindowBorderColor();
+        _homeView.RefreshThemeAppearance();
+    }
+
+    private void ApplyMotionPreferences(bool simplified)
+    {
+        MotionPreferences.SimplifiedAnimations = simplified;
+    }
+
+    private void ApplyCompactSidebar(bool compact)
+    {
+        _sidebarBaseWidth = compact ? SidebarWidthCompact : SidebarWidthExpanded;
+        _sidebarDesignWidth = compact ? 52 : 228;
+
+        SidebarPanel.Width = _sidebarDesignWidth;
+        SidebarPanel.Margin = compact ? new Thickness(12, 28, 12, 24) : new Thickness(20, 28, 20, 24);
+        BrandPanel.HorizontalAlignment = compact ? HorizontalAlignment.Center : HorizontalAlignment.Left;
+        BrandTextBlock.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
+
+        var labelVisibility = compact ? Visibility.Collapsed : Visibility.Visible;
+        NavHomeLabel.Visibility = labelVisibility;
+        NavServersLabel.Visibility = labelVisibility;
+        NavSettingsLabel.Visibility = labelVisibility;
+
+        var iconMargin = compact ? new Thickness(0) : new Thickness(0, 0, 14, 0);
+        NavHomeIcon.Margin = iconMargin;
+        NavServersIcon.Margin = iconMargin;
+        NavSettingsIcon.Margin = iconMargin;
+
+        NavHomeButton.HorizontalContentAlignment = compact ? HorizontalAlignment.Center : HorizontalAlignment.Stretch;
+        NavServersButton.HorizontalContentAlignment = compact ? HorizontalAlignment.Center : HorizontalAlignment.Stretch;
+        NavSettingsButton.HorizontalContentAlignment = compact ? HorizontalAlignment.Center : HorizontalAlignment.Stretch;
+        NavHomeButton.Padding = compact ? new Thickness(10, 12, 10, 12) : new Thickness(14, 12, 14, 12);
+        NavServersButton.Padding = compact ? new Thickness(10, 12, 10, 12) : new Thickness(14, 12, 14, 12);
+        NavSettingsButton.Padding = compact ? new Thickness(10, 12, 10, 12) : new Thickness(14, 12, 14, 12);
+
+        NavHomeButton.ToolTip = compact ? "Главная" : null;
+        NavServersButton.ToolTip = compact ? "Серверы" : null;
+        NavSettingsButton.ToolTip = compact ? "Настройки" : null;
+
+        ContentHostGrid.Margin = compact ? new Thickness(16, 16, 16, 20) : new Thickness(24, 20, 24, 32);
+        MinWidth = compact ? MinWindowWidthCompact : MinWindowWidthExpanded;
+        MinHeight = MinWindowHeightValue;
+
+        UpdateResponsiveLayout();
+    }
+
+    private void Window_SizeChanged(object sender, SizeChangedEventArgs e) =>
+        UpdateResponsiveLayout();
+
+    private void UpdateResponsiveLayout()
+    {
+        if (!IsLoaded)
+            return;
+
+        var heightScale = Math.Clamp(ActualHeight / 760.0, 0.62, 1.0);
+        var widthReference = _settings.CompactSidebar ? 480.0 : 920.0;
+        var widthScale = Math.Clamp(ActualWidth / widthReference, 0.62, 1.0);
+        var scale = Math.Min(heightScale, widthScale);
+
+        var sidebarWidth = _sidebarBaseWidth * scale;
+        var sidebarHeight = SidebarDesignHeight * scale;
+
+        SidebarViewbox.MaxWidth = sidebarWidth;
+        SidebarViewbox.MaxHeight = sidebarHeight;
+        SidebarColumn.Width = new GridLength(sidebarWidth);
+    }
+
+    private async Task PasteSubscriptionFromClipboardAsync()
+    {
+        if (!Clipboard.ContainsText())
+        {
+            const string message = "Буфер обмена пуст.";
+            _settingsView.SetStatus(message);
+            _subscriptionSettingsView.SetStatus(message);
+            return;
+        }
+
+        var url = Clipboard.GetText().Trim();
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            const string message = "В буфере нет ссылки подписки.";
+            _settingsView.SetStatus(message);
+            _subscriptionSettingsView.SetStatus(message);
+            return;
+        }
+
+        await ApplySubscriptionUrlAsync(url);
+    }
+
+    private void UpdateSubscriptionAvailability()
+    {
+        var hasConfiguredUrl = !string.IsNullOrWhiteSpace(_settings.SubscriptionUrl);
+        var hasServers = _nodes.Any(static node => !node.IsPlaceholder);
+
+        _subscriptionSettingsView.SetSubscriptionConfigured(hasConfiguredUrl);
+        _homeView.SetSubscriptionConfigured(hasConfiguredUrl);
+        _homeView.SetSubscriptionAvailable(hasConfiguredUrl && hasServers);
     }
 
     private async Task RefreshSubscriptionAsync()
@@ -334,6 +703,7 @@ public partial class MainWindow : Window
             }
 
             UpdateCurrentServerDisplay();
+            UpdateSubscriptionAvailability();
             var success = $"Загружено серверов: {_nodes.Count}.";
             _settingsView.SetStatus(success);
             _subscriptionSettingsView.SetStatus(success);
@@ -348,6 +718,7 @@ public partial class MainWindow : Window
             _serversView.SetSubscriptionInfo(_subscriptionInfo);
             _selectedNode = null;
             UpdateCurrentServerDisplay();
+            UpdateSubscriptionAvailability();
             _settingsView.SetStatus(ex.Message);
             _subscriptionSettingsView.SetStatus(ex.Message);
             _serversView.SetHeaderStatus(ex.Message);
@@ -357,6 +728,7 @@ public partial class MainWindow : Window
         {
             _subscriptionSettingsView.SetBusy(false);
             _serversView.SetRefreshing(false);
+            EndHomeSubscriptionImportIfPending();
         }
     }
 
@@ -380,6 +752,7 @@ public partial class MainWindow : Window
         _serversView.SetSubscriptionInfo(_subscriptionInfo);
         UpdateCurrentServerDisplay();
         ConfigureSubscriptionAutoUpdate();
+        UpdateSubscriptionAvailability();
 
         const string message = "Подписка удалена.";
         _settingsView.SetStatus(message);
@@ -449,6 +822,46 @@ public partial class MainWindow : Window
         UpdateCurrentServerDisplay();
     }
 
+    private void OnServerSelected(ProxyNode node)
+    {
+        if (node.IsPlaceholder)
+        {
+            SelectServer(node);
+            return;
+        }
+
+        var previousNode = _selectedNode;
+        SelectServer(node);
+
+        if (!_isConnected || previousNode is null || IsSameServer(previousNode, node))
+            return;
+
+        var serverName = ServerDisplayHelper.GetShortName(node);
+        _ = ReconnectIfConnectedAsync($"Переключено на «{serverName}».");
+    }
+
+    private void OnServerReconnectRequested(ProxyNode node)
+    {
+        if (node.IsPlaceholder)
+            return;
+
+        SelectServer(node);
+        NavigateTo(Page.Home);
+
+        if (_isConnected)
+        {
+            var serverName = ServerDisplayHelper.GetShortName(node);
+            _ = ReconnectIfConnectedAsync($"Переподключение к «{serverName}».");
+            return;
+        }
+
+        _ = ToggleConnectionAsync();
+    }
+
+    private static bool IsSameServer(ProxyNode left, ProxyNode right) =>
+        ReferenceEquals(left, right) ||
+        (left.Address == right.Address && left.Port == right.Port);
+
     private void ToggleConnection()
     {
         _ = ToggleConnectionAsync();
@@ -456,37 +869,67 @@ public partial class MainWindow : Window
 
     private async Task ToggleConnectionAsync()
     {
-        if (_isConnected)
-        {
-            await DisconnectAsync("Отключено.");
+        if (!await _connectionGate.WaitAsync(0))
             return;
-        }
-
-        _selectedNode ??= _serversView.GetSelectedNode();
-        if (_selectedNode is null || _selectedNode.IsPlaceholder)
-        {
-            _settingsView.SetStatus("Выберите сервер на вкладке «Серверы».");
-            NavigateTo(Page.Servers);
-            return;
-        }
-
-        _settingsView.SetStatus("Подключение...");
-        _appLog.Append($"Подключение к «{_selectedNode.Name}»...");
 
         try
         {
-            await _xrayRunner.StartAsync(_selectedNode, _xrayDirectory, _settings);
-            SetConnected(true, intentionalDisconnect: true);
-            ApplyKillSwitchOnConnect();
-            _settingsView.SetStatus($"Подключено к «{_selectedNode.Name}» через TUN.");
-            _appLog.Append($"VPN подключён: «{_selectedNode.Name}».");
+            if (_isConnected)
+            {
+                _homeView.SetConnecting(true, "Отключение...", isDisconnecting: true);
+                try
+                {
+                    await DisconnectAsync("Отключено.");
+                }
+                finally
+                {
+                    _homeView.SetConnecting(false);
+                }
+
+                return;
+            }
+
+            if (!AdminElevationHelper.IsAdministrator())
+            {
+                _homeView.SetConnecting(false);
+                if (AdminElevationHelper.TryEnsureAdministrator())
+                    Application.Current.Shutdown();
+
+                return;
+            }
+
+            _selectedNode ??= _serversView.GetSelectedNode();
+            if (_selectedNode is null || _selectedNode.IsPlaceholder)
+            {
+                _homeView.SetConnecting(false);
+                _settingsView.SetStatus("Выберите сервер на вкладке «Серверы».");
+                NavigateTo(Page.Servers);
+                return;
+            }
+
+            _settingsView.SetStatus("Подключение...");
+            _appLog.Append($"Подключение к «{_selectedNode.Name}»...");
+            _homeView.SetConnecting(true);
+
+            try
+            {
+                await _xrayRunner.StartAsync(_selectedNode, _xrayDirectory, _settings);
+                SetConnected(true, intentionalDisconnect: true);
+                ApplyKillSwitchOnConnect();
+                _settingsView.SetStatus($"Подключено к «{_selectedNode.Name}» через TUN.");
+                _appLog.Append($"VPN подключён: «{_selectedNode.Name}».");
+            }
+            catch (Exception ex)
+            {
+                await _xrayRunner.StopAsync();
+                SetConnected(false, intentionalDisconnect: true);
+                _settingsView.SetStatus(ex.Message);
+                _appLog.Append($"Ошибка подключения: {ex.Message}");
+            }
         }
-        catch (Exception ex)
+        finally
         {
-            await _xrayRunner.StopAsync();
-            SetConnected(false, intentionalDisconnect: true);
-            _settingsView.SetStatus(ex.Message);
-            _appLog.Append($"Ошибка подключения: {ex.Message}");
+            _connectionGate.Release();
         }
     }
 
@@ -503,8 +946,12 @@ public partial class MainWindow : Window
         if (!_isConnected || _selectedNode is null || _selectedNode.IsPlaceholder)
             return;
 
+        if (!await _connectionGate.WaitAsync(0))
+            return;
+
         _settingsView.SetStatus("Применение настроек...");
         _appLog.Append(statusMessage);
+        _homeView.SetConnecting(true, "Переподключение...");
 
         try
         {
@@ -512,6 +959,7 @@ public partial class MainWindow : Window
             await _xrayRunner.StartAsync(_selectedNode, _xrayDirectory, _settings);
             ApplyKillSwitchOnConnect();
             _settingsView.SetStatus(statusMessage);
+            _serversView.SetHeaderStatus(statusMessage);
         }
         catch (Exception ex)
         {
@@ -519,6 +967,11 @@ public partial class MainWindow : Window
             SetConnected(false, intentionalDisconnect: true);
             _settingsView.SetStatus(ex.Message);
             _appLog.Append($"Ошибка переподключения: {ex.Message}");
+        }
+        finally
+        {
+            _homeView.SetConnecting(false);
+            _connectionGate.Release();
         }
     }
 
@@ -530,7 +983,7 @@ public partial class MainWindow : Window
         try
         {
             var xrayExe = Path.Combine(_xrayDirectory, "xray.exe");
-            var appExe = Environment.ProcessPath ?? Path.Combine(AppContext.BaseDirectory, "CoffeeManiaVPN.exe");
+            var appExe = Environment.ProcessPath ?? Path.Combine(AppPaths.Root, "CoffeeManiaVPN.exe");
             _killSwitch.Engage(xrayExe, appExe);
             _killSwitchSettingsView.UpdateEngagedStatus(false);
             _appLog.Append("Kill Switch активирован.");
@@ -554,7 +1007,7 @@ public partial class MainWindow : Window
         try
         {
             var xrayExe = Path.Combine(_xrayDirectory, "xray.exe");
-            var appExe = Environment.ProcessPath ?? Path.Combine(AppContext.BaseDirectory, "CoffeeManiaVPN.exe");
+            var appExe = Environment.ProcessPath ?? Path.Combine(AppPaths.Root, "CoffeeManiaVPN.exe");
             _killSwitch.Engage(xrayExe, appExe);
             _killSwitchSettingsView.UpdateEngagedStatus(true);
             _appLog.Append("Kill Switch: интернет заблокирован после обрыва VPN.");
@@ -586,6 +1039,7 @@ public partial class MainWindow : Window
         }
 
         _homeView.SetConnected(connected, serverName);
+        _trayIcon.UpdateConnectionState(connected);
     }
 
     private void UpdateTrafficStats()
@@ -621,15 +1075,29 @@ public partial class MainWindow : Window
 
     private async Task OnXrayExitedAsync(int code)
     {
-        await _xrayRunner.StopAsync();
-        SetConnected(false, intentionalDisconnect: false);
-        var message = code == 0
-            ? "Соединение завершено."
-            : _settings.KillSwitchEnabled
-                ? $"Xray завершился с кодом {code}. Kill Switch заблокировал интернет."
-                : $"Xray завершился с кодом {code}.";
-        _settingsView.SetStatus(message);
-        _appLog.Append(message);
+        if (!await _connectionGate.WaitAsync(0))
+            return;
+
+        try
+        {
+            if (!_isConnected)
+                return;
+
+            await _xrayRunner.StopAsync();
+            SetConnected(false, intentionalDisconnect: false);
+            var message = code == 0
+                ? "Соединение завершено."
+                : _settings.KillSwitchEnabled
+                    ? $"Xray завершился с кодом {code}. Kill Switch заблокировал интернет."
+                    : $"Xray завершился с кодом {code}.";
+            _settingsView.SetStatus(message);
+            _appLog.Append(message);
+        }
+        finally
+        {
+            _homeView.SetConnecting(false);
+            _connectionGate.Release();
+        }
     }
 
     private void OnSourceInitialized(object? sender, EventArgs e)
@@ -638,9 +1106,8 @@ public partial class MainWindow : Window
         if (hwnd == IntPtr.Zero)
             return;
 
-        // #1A1614 -> COLORREF BGR
-        var borderColor = 0x0014161A;
-        _ = DwmSetWindowAttribute(hwnd, DwmwaBorderColor, ref borderColor, sizeof(int));
+        // COLORREF BGR
+        ApplyWindowBorderColor();
 
         var disableNcRendering = 1;
         _ = DwmSetWindowAttribute(hwnd, DwmwaNcRenderingPolicy, ref disableNcRendering, sizeof(int));
@@ -648,7 +1115,14 @@ public partial class MainWindow : Window
         UpdateWindowCorners();
     }
 
-    private void Window_StateChanged(object? sender, EventArgs e) => UpdateWindowCorners();
+    private void Window_StateChanged(object? sender, EventArgs e)
+    {
+        UpdateWindowCorners();
+        UpdateResponsiveLayout();
+
+        if (WindowState == WindowState.Minimized && !_trayIcon.IsExiting)
+            _trayIcon.HideToTray();
+    }
 
     private void UpdateWindowCorners()
     {
@@ -666,6 +1140,19 @@ public partial class MainWindow : Window
 
         var cornerPreference = rounded ? DwmwcpRound : DwmwcpDoNotRound;
         _ = DwmSetWindowAttribute(hwnd, DwmwaWindowCornerPreference, ref cornerPreference, sizeof(int));
+    }
+
+    private void ApplyWindowBorderColor()
+    {
+        var hwnd = new WindowInteropHelper(this).Handle;
+        if (hwnd == IntPtr.Zero)
+            return;
+
+        var color = Application.Current.TryFindResource("WindowBorderColor") is Color themeColor
+            ? themeColor
+            : (Color)Application.Current.FindResource("SurfaceColor");
+        var borderColor = color.B | (color.G << 8) | (color.R << 16);
+        _ = DwmSetWindowAttribute(hwnd, DwmwaBorderColor, ref borderColor, sizeof(int));
     }
 
     private const int DwmwaBorderColor = 34;
@@ -690,14 +1177,23 @@ public partial class MainWindow : Window
             DragMove();
     }
 
-    private void MinimizeButton_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+    private void MinimizeButton_Click(object sender, RoutedEventArgs e) => _trayIcon.HideToTray();
     private void MaximizeButton_Click(object sender, RoutedEventArgs e) =>
         WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
-    private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
+    private void CloseButton_Click(object sender, RoutedEventArgs e) => _trayIcon.HideToTray();
 
     private void Window_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
+        if (!_trayIcon.IsExiting)
+        {
+            e.Cancel = true;
+            _trayIcon.HideToTray();
+            return;
+        }
+
         _killSwitch.Disengage();
         _xrayRunner.Stop();
+        _trayIcon.Dispose();
+        System.Windows.Application.Current.Shutdown();
     }
 }

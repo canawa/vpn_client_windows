@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using CoffeeManiaVPN.Core.Models;
+using CoffeeManiaVPN.Helpers;
 
 namespace CoffeeManiaVPN.Views;
 
@@ -13,6 +14,7 @@ public partial class ServersView : UserControl
     public event EventHandler? RefreshRequested;
     public event EventHandler? PingRequested;
     public event EventHandler<ProxyNode>? ServerSelected;
+    public event EventHandler<ProxyNode>? ServerReconnectRequested;
 
     private double _usageRatio;
     private ScrollViewer? _serversScrollViewer;
@@ -20,8 +22,30 @@ public partial class ServersView : UserControl
     public ServersView()
     {
         InitializeComponent();
-        Loaded += (_, _) => _serversScrollViewer = FindScrollViewer(ServersListBox);
+        Loaded += (_, _) =>
+        {
+            _serversScrollViewer = FindScrollViewer(ServersListBox);
+            UpdateCompactLayout(RootGrid.ActualHeight);
+        };
         PreviewMouseWheel += OnPreviewMouseWheel;
+    }
+
+    private void RootGrid_SizeChanged(object sender, SizeChangedEventArgs e) =>
+        UpdateCompactLayout(e.NewSize.Height);
+
+    private void UpdateCompactLayout(double height)
+    {
+        var compact = height < 560;
+        var ultraCompact = height < 460;
+
+        TelegramBanner.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
+        BannerRow.Height = compact ? new GridLength(0) : GridLength.Auto;
+
+        UsageSection.Visibility = ultraCompact ? Visibility.Collapsed : Visibility.Visible;
+        ServerCountPanel.Visibility = ultraCompact ? Visibility.Collapsed : Visibility.Visible;
+
+        HeaderCard.Padding = compact ? new Thickness(10) : new Thickness(14);
+        HeaderCard.Margin = new Thickness(0, 0, 0, compact ? 6 : 10);
     }
 
     public void SetServers(IReadOnlyList<ProxyNode> nodes, int selectedIndex)
@@ -132,6 +156,15 @@ public partial class ServersView : UserControl
             ServerSelected?.Invoke(this, item.Node);
     }
 
+    private void ServersListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (ServersListBox.SelectedItem is not Models.ServerListItem item || item.Node.IsPlaceholder)
+            return;
+
+        ServerReconnectRequested?.Invoke(this, item.Node);
+        e.Handled = true;
+    }
+
     private void TelegramBanner_Click(object sender, MouseButtonEventArgs e)
     {
         try
@@ -154,8 +187,7 @@ public partial class ServersView : UserControl
         if (_serversScrollViewer is null)
             return;
 
-        _serversScrollViewer.ScrollToVerticalOffset(
-            _serversScrollViewer.VerticalOffset - e.Delta);
+        SmoothScrollHelper.ScrollBy(_serversScrollViewer, -e.Delta * 0.28);
 
         e.Handled = true;
     }

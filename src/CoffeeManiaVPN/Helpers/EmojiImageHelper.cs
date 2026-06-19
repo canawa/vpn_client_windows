@@ -66,7 +66,7 @@ public static class EmojiImageHelper
 
     private static string? GetBundledPath(string emoji)
     {
-        var path = Path.Combine(AppContext.BaseDirectory, "Assets", "Emoji", ToFileName(emoji));
+        var path = Path.Combine(AppPaths.AssetsDirectory, "Emoji", ToFileName(emoji));
         return File.Exists(path) ? path : null;
     }
 

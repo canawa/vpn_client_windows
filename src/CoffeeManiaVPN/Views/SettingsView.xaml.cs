@@ -10,6 +10,7 @@ public partial class SettingsView : UserControl
     public event EventHandler? OpenSubscriptionRequested;
     public event EventHandler? OpenLogsRequested;
     public event EventHandler? OpenAboutRequested;
+    public event EventHandler? OpenThemeRequested;
     public event EventHandler? CloseAppRequested;
 
     public SettingsView()
@@ -33,6 +34,9 @@ public partial class SettingsView : UserControl
 
     private void AboutButton_Click(object sender, RoutedEventArgs e) =>
         OpenAboutRequested?.Invoke(this, EventArgs.Empty);
+
+    private void ThemeButton_Click(object sender, RoutedEventArgs e) =>
+        OpenThemeRequested?.Invoke(this, EventArgs.Empty);
 
     private void CloseAppButton_Click(object sender, RoutedEventArgs e) =>
         CloseAppRequested?.Invoke(this, EventArgs.Empty);

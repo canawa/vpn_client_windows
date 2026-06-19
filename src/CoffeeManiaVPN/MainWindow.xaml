@@ -6,8 +6,9 @@
         Title="Кофемания ВПН"
         Height="820"
         Width="960"
-        MinHeight="700"
-        MinWidth="820"
+        MinHeight="440"
+        MinWidth="460"
+        SizeChanged="Window_SizeChanged"
         WindowStyle="None"
         ResizeMode="CanResize"
         WindowStartupLocation="CenterScreen"
@@ -15,6 +16,7 @@
         AllowsTransparency="True"
         SnapsToDevicePixels="True"
         UseLayoutRounding="True"
+        FontFamily="{StaticResource FontBody}"
         StateChanged="Window_StateChanged"
         Closing="Window_Closing">
     <shell:WindowChrome.WindowChrome>
@@ -25,8 +27,8 @@
                              UseAeroCaptionButtons="False" />
     </shell:WindowChrome.WindowChrome>
     <Border x:Name="RootBorder"
-            Background="{StaticResource SurfaceBrush}"
-            BorderBrush="{StaticResource MicaBorderBrush}"
+            Background="{DynamicResource SurfaceBrush}"
+            BorderBrush="{DynamicResource MicaBorderBrush}"
             BorderThickness="1"
             CornerRadius="14"
             ClipToBounds="True"
@@ -34,39 +36,60 @@
             UseLayoutRounding="True">
         <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200" />
+            <ColumnDefinition x:Name="SidebarColumn" Width="268" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
         <!-- Боковая навигация -->
-        <Border Grid.Column="0"
-                Background="{StaticResource SurfaceBrush}"
-                BorderBrush="{StaticResource DividerBrush}"
-                BorderThickness="0,0,1,0">
-            <StackPanel Margin="16,24,16,24">
-                <StackPanel Margin="0,0,0,20">
-                    <TextBlock Text="КОФЕМАНИЯ"
-                               FontSize="15"
+        <Border x:Name="SidebarHost"
+                Grid.Column="0"
+                Background="{DynamicResource SurfaceBrush}"
+                BorderBrush="{DynamicResource DividerBrush}"
+                BorderThickness="0,0,1,0"
+                ClipToBounds="True">
+            <Viewbox x:Name="SidebarViewbox"
+                     Stretch="Uniform"
+                     StretchDirection="DownOnly"
+                     VerticalAlignment="Top"
+                     HorizontalAlignment="Left">
+            <StackPanel x:Name="SidebarPanel" Width="228" Margin="20,28,20,24">
+                <StackPanel x:Name="BrandPanel"
+                            Orientation="Horizontal"
+                            Margin="0,0,0,24"
+                            VerticalAlignment="Center">
+                    <Border Width="40"
+                            Height="40"
+                            CornerRadius="9"
+                            Background="{DynamicResource BrandLogoBackgroundBrush}"
+                            SnapsToDevicePixels="True">
+                        <controls:LogoMark Width="36"
+                                           Height="36"
+                                           IconBrush="{DynamicResource BrandLogoIconBrush}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                    </Border>
+                    <TextBlock x:Name="BrandTextBlock"
+                               Text="COFFEEMANIA"
+                               FontSize="22"
                                FontWeight="Bold"
-                               Foreground="{StaticResource OnSurfaceBrush}" />
-                    <TextBlock Text="ВПН"
-                               FontSize="11"
-                               FontWeight="SemiBold"
-                               Foreground="{StaticResource OnSurfaceVariantBrush}"
-                               Margin="0,2,0,0" />
+                               Foreground="{DynamicResource BrandTextBrush}"
+                               Margin="10,0,0,0"
+                               VerticalAlignment="Center" />
                 </StackPanel>
 
                 <Button x:Name="NavHomeButton"
                         Style="{StaticResource NavPillActiveButtonStyle}"
                         Click="NavHomeButton_Click">
                     <StackPanel Orientation="Horizontal">
-                        <controls:LogoMark Width="18"
-                                           Height="18"
+                        <controls:LogoMark x:Name="NavHomeIcon"
+                                           Width="22"
+                                           Height="22"
                                            IconBrush="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
-                                           Margin="0,0,12,0"
+                                           Margin="0,0,14,0"
                                            VerticalAlignment="Center" />
-                        <TextBlock Text="Главная"
-                                   FontSize="14"
+                        <TextBlock x:Name="NavHomeLabel"
+                                   Text="Главная"
+                                   FontSize="16"
                                    VerticalAlignment="Center" />
                     </StackPanel>
                 </Button>
@@ -74,13 +97,15 @@
                         Style="{StaticResource NavPillButtonStyle}"
                         Click="NavServersButton_Click">
                     <StackPanel Orientation="Horizontal">
-                        <controls:UiIcon Kind="Globe"
-                                         IconSize="18"
+                        <controls:UiIcon x:Name="NavServersIcon"
+                                         Kind="Globe"
+                                         IconSize="22"
                                          IconBrush="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
-                                         Margin="0,0,12,0"
+                                         Margin="0,0,14,0"
                                          VerticalAlignment="Center" />
-                        <TextBlock Text="Серверы"
-                                   FontSize="14"
+                        <TextBlock x:Name="NavServersLabel"
+                                   Text="Серверы"
+                                   FontSize="16"
                                    VerticalAlignment="Center" />
                     </StackPanel>
                 </Button>
@@ -88,17 +113,20 @@
                         Style="{StaticResource NavPillButtonStyle}"
                         Click="NavSettingsButton_Click">
                     <StackPanel Orientation="Horizontal">
-                        <controls:UiIcon Kind="Settings"
-                                         IconSize="18"
+                        <controls:UiIcon x:Name="NavSettingsIcon"
+                                         Kind="Settings"
+                                         IconSize="22"
                                          IconBrush="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
-                                         Margin="0,0,12,0"
+                                         Margin="0,0,14,0"
                                          VerticalAlignment="Center" />
-                        <TextBlock Text="Настройки"
-                                   FontSize="14"
+                        <TextBlock x:Name="NavSettingsLabel"
+                                   Text="Настройки"
+                                   FontSize="16"
                                    VerticalAlignment="Center" />
                     </StackPanel>
                 </Button>
             </StackPanel>
+            </Viewbox>
         </Border>
 
         <!-- Основная область -->
@@ -109,8 +137,8 @@
             </Grid.RowDefinitions>
 
             <Border Grid.Row="0"
-                    Background="{StaticResource SurfaceBrush}"
-                    BorderBrush="{StaticResource DividerBrush}"
+                    Background="{DynamicResource TitleBarBrush}"
+                    BorderBrush="{DynamicResource DividerBrush}"
                     BorderThickness="0,0,0,1"
                     shell:WindowChrome.IsHitTestVisibleInChrome="True"
                     MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
@@ -128,7 +156,7 @@
                                    Text="Главная"
                                    FontSize="18"
                                    FontWeight="SemiBold"
-                                   Foreground="{StaticResource OnSurfaceBrush}"
+                                   Foreground="{DynamicResource OnSurfaceBrush}"
                                    VerticalAlignment="Center" />
                     </StackPanel>
 
@@ -148,8 +176,10 @@
                 </Grid>
             </Border>
 
-            <Border Grid.Row="1" Background="{StaticResource BackgroundBrush}">
-                <Grid Margin="24,20,24,32">
+            <Border Grid.Row="1"
+                    Background="{DynamicResource BackgroundBrush}"
+                    ClipToBounds="True">
+                <Grid x:Name="ContentHostGrid" Margin="24,20,24,32">
                     <ContentControl x:Name="PageHost"
                                     MaxWidth="560"
                                     HorizontalAlignment="Center"

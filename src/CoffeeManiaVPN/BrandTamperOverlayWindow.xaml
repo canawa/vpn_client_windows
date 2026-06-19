@@ -1,0 +1,40 @@
+<Window x:Class="CoffeeManiaVPN.BrandTamperOverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Topmost="True"
+        Background="#FF000000"
+        AllowsTransparency="False"
+        ShowActivated="True"
+        Focusable="True"
+        PreviewKeyDown="OnPreviewKeyDown">
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <TextBlock x:Name="MessageTextBlock"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       FontSize="26"
+                       FontWeight="SemiBold"
+                       LineHeight="38"
+                       Foreground="#FF22C55E"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       MaxWidth="900"
+                       Margin="48"
+                       TextOptions.TextFormattingMode="Display"
+                       TextOptions.TextRenderingMode="ClearType" />
+        </ScrollViewer>
+
+        <TextBlock HorizontalAlignment="Right"
+                   VerticalAlignment="Top"
+                   Margin="0,20,24,0"
+                   FontSize="14"
+                   Foreground="#9966BB6A"
+                   Text="ALT + 9 — закрыть окно"
+                   TextOptions.TextFormattingMode="Display"
+                   TextOptions.TextRenderingMode="ClearType" />
+    </Grid>
+</Window>

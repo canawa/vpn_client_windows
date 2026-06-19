@@ -1,0 +1,99 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+[Dd]ebug/
+[Rr]elease/
+[Rr]eleases/
+artifacts/
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# Publish / release artifacts
+dist/
+dist/**
+publish/
+publish-standalone/
+**/win-x64/publish/
+
+# Installers / archives
+*.zip
+*.msi
+*.7z
+*.cab
+*.appx
+*.msix
+/CoffeeManiaVPN-Setup*.exe
+
+# .NET build artifacts
+*.dll
+*.exe
+*.pdb
+*.apphost.exe
+*.deps.json
+*.runtimeconfig.json
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+**/*.nuget.cache
+**/project.assets.json
+**/project.nuget.cache
+
+# Certificates and secrets
+certs/
+secrets/
+*.pfx
+*.p12
+*.key
+*.pem
+.env
+.env.*
+secrets.json
+appsettings.*.local.json
+
+# Xray runtime binaries (keep scripts/docs in repo)
+xray/*
+!xray/LICENSE
+!xray/LICENSE-wintun.txt
+!xray/README.md
+!xray/xray_no_window.ps1
+!xray/xray_no_window.vbs
+**/xray/configs/active.json
+
+# Visual Studio / Rider / VS Code
+.vs/
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+# Cursor local
+.cursor/
+
+# WPF / MSBuild temp
+*_wpftmp.csproj
+*.baml
+*.g.cs
+*.lref
+*.cache
+*.tmp
+*.temp
+*~
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# Local test / scratch artifacts
+test-logo.ico

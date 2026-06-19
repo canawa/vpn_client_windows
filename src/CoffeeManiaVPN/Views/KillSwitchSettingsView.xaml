@@ -4,7 +4,7 @@
              xmlns:controls="clr-namespace:CoffeeManiaVPN.Controls"
              Background="Transparent">
     <StackPanel>
-        <Border Background="{StaticResource SurfaceContainerHighBrush}"
+        <Border Background="{DynamicResource SurfaceContainerHighBrush}"
                 BorderBrush="#0DE6D5C3"
                 BorderThickness="1"
                 CornerRadius="14"
@@ -19,17 +19,17 @@
                 <controls:UiIcon Grid.Column="0"
                                  Kind="Shield"
                                  IconSize="24"
-                                 IconBrush="{StaticResource PrimaryBrush}"
+                                 IconBrush="{DynamicResource PrimaryBrush}"
                                  Margin="0,0,12,0"
                                  VerticalAlignment="Center" />
                 <StackPanel Grid.Column="1">
                     <TextBlock Text="Kill switch"
                                FontSize="15"
                                FontWeight="SemiBold"
-                               Foreground="{StaticResource OnSurfaceBrush}" />
+                               Foreground="{DynamicResource OnSurfaceBrush}" />
                     <TextBlock Text="Блокирует интернет при обрыве VPN."
                                FontSize="12"
-                               Foreground="{StaticResource OnSurfaceVariantBrush}"
+                               Foreground="{DynamicResource OnSurfaceVariantBrush}"
                                Margin="0,6,0,0"
                                TextWrapping="Wrap" />
                 </StackPanel>
@@ -42,20 +42,20 @@
             </Grid>
         </Border>
 
-        <Border Background="{StaticResource SurfaceContainerBrush}"
+        <Border Background="{DynamicResource SurfaceContainerBrush}"
                 CornerRadius="14"
-                BorderBrush="{StaticResource MicaBorderBrush}"
+                BorderBrush="{DynamicResource MicaBorderBrush}"
                 BorderThickness="1"
                 Padding="16">
             <StackPanel>
                 <TextBlock Text="Как это работает"
                            FontSize="14"
                            FontWeight="SemiBold"
-                           Foreground="{StaticResource OnSurfaceBrush}"
+                           Foreground="{DynamicResource OnSurfaceBrush}"
                            Margin="0,0,0,8" />
                 <TextBlock Text="При включённом Kill Switch весь исходящий трафик блокируется, кроме VPN-приложения. Если соединение неожиданно оборвётся, доступ в интернет останется заблокированным до повторного подключения или отключения функции."
                            FontSize="13"
-                           Foreground="{StaticResource OnSurfaceVariantBrush}"
+                           Foreground="{DynamicResource OnSurfaceVariantBrush}"
                            TextWrapping="Wrap"
                            LineHeight="20" />
             </StackPanel>
@@ -63,7 +63,7 @@
 
         <TextBlock x:Name="StatusTextBlock"
                    Margin="0,16,0,0"
-                   Foreground="{StaticResource OnSurfaceVariantBrush}"
+                   Foreground="{DynamicResource OnSurfaceVariantBrush}"
                    FontSize="12"
                    TextWrapping="Wrap" />
     </StackPanel>

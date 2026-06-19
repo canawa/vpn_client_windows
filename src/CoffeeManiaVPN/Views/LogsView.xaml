@@ -21,9 +21,9 @@
         </StackPanel>
 
         <Border Grid.Row="1"
-                Background="{StaticResource SurfaceContainerBrush}"
+                Background="{DynamicResource SurfaceContainerBrush}"
                 CornerRadius="14"
-                BorderBrush="{StaticResource MicaBorderBrush}"
+                BorderBrush="{DynamicResource MicaBorderBrush}"
                 BorderThickness="1"
                 Padding="12">
             <Grid>
@@ -32,13 +32,13 @@
                     <TextBlock x:Name="LogsTextBlock"
                                FontFamily="Consolas"
                                FontSize="12"
-                               Foreground="{StaticResource OnSurfaceVariantBrush}"
+                               Foreground="{DynamicResource OnSurfaceVariantBrush}"
                                TextWrapping="Wrap" />
                 </ScrollViewer>
                 <TextBlock x:Name="EmptyTextBlock"
                            Text="Логи появятся после запуска приложения и подключения к VPN."
                            FontSize="13"
-                           Foreground="{StaticResource OnSurfaceVariantBrush}"
+                           Foreground="{DynamicResource OnSurfaceVariantBrush}"
                            TextWrapping="Wrap"
                            TextAlignment="Center"
                            HorizontalAlignment="Center"

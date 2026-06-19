@@ -11,6 +11,7 @@ public sealed class XrayRunner : IDisposable
     private const int AdapterReleaseDelayMs = 1200;
     private const int StartupVerifyDelayMs = 800;
 
+    private readonly SemaphoreSlim _operationLock = new(1, 1);
     private Process? _process;
     private string? _configPath;
     private readonly StringBuilder _recentLogs = new();
@@ -26,56 +27,64 @@ public sealed class XrayRunner : IDisposable
         AppSettings? settings = null,
         CancellationToken cancellationToken = default)
     {
-        await KillOrphanXrayProcessesAsync(xrayDirectory, cancellationToken);
-        await StopAsync(cancellationToken);
-        await Task.Delay(AdapterReleaseDelayMs, cancellationToken);
-
-        if (node.IsPlaceholder)
-            throw new InvalidOperationException("Выберите рабочий сервер из списка.");
-
-        if (!Directory.Exists(xrayDirectory))
-            throw new DirectoryNotFoundException($"Не найдена папка Xray: {xrayDirectory}");
-
-        var xrayExe = Path.Combine(xrayDirectory, "xray.exe");
-        if (!File.Exists(xrayExe))
-            throw new FileNotFoundException("Не найден xray.exe.", xrayExe);
-
-        Directory.CreateDirectory(Path.Combine(xrayDirectory, "configs"));
-        _configPath = Path.Combine(xrayDirectory, "configs", "active.json");
-
-        var rawConfig = node.HasFullConfig
-            ? node.XrayConfigJson!
-            : XrayConfigBuilder.Build(node, xrayDirectory);
-        var config = XrayTunConfigurator.Apply(rawConfig, settings);
-        File.WriteAllText(_configPath, config);
-
-        _recentLogs.Clear();
-        Exception? lastError = null;
-
-        for (var attempt = 1; attempt <= 3; attempt++)
+        await _operationLock.WaitAsync(cancellationToken);
+        try
         {
-            if (attempt > 1)
-                await Task.Delay(AdapterReleaseDelayMs, cancellationToken);
+            await KillOrphanXrayProcessesAsync(xrayDirectory, cancellationToken);
+            await StopInternalAsync(cancellationToken);
+            await Task.Delay(AdapterReleaseDelayMs, cancellationToken);
 
-            try
+            if (node.IsPlaceholder)
+                throw new InvalidOperationException("Выберите рабочий сервер из списка.");
+
+            if (!Directory.Exists(xrayDirectory))
+                throw new DirectoryNotFoundException($"Не найдена папка Xray: {xrayDirectory}");
+
+            var xrayExe = Path.Combine(xrayDirectory, "xray.exe");
+            if (!File.Exists(xrayExe))
+                throw new FileNotFoundException("Не найден xray.exe.", xrayExe);
+
+            Directory.CreateDirectory(Path.Combine(xrayDirectory, "configs"));
+            _configPath = Path.Combine(xrayDirectory, "configs", "active.json");
+
+            var rawConfig = node.HasFullConfig
+                ? node.XrayConfigJson!
+                : XrayConfigBuilder.Build(node, xrayDirectory);
+            var config = XrayTunConfigurator.Apply(rawConfig, settings);
+            File.WriteAllText(_configPath, config);
+
+            _recentLogs.Clear();
+            Exception? lastError = null;
+
+            for (var attempt = 1; attempt <= 3; attempt++)
             {
-                StartProcess(xrayExe, _configPath);
-                await Task.Delay(StartupVerifyDelayMs, cancellationToken);
+                if (attempt > 1)
+                    await Task.Delay(AdapterReleaseDelayMs, cancellationToken);
 
-                if (_process is { HasExited: false })
-                    return;
+                try
+                {
+                    StartProcess(xrayExe, _configPath);
+                    await Task.Delay(StartupVerifyDelayMs, cancellationToken);
 
-                lastError = new InvalidOperationException(GetStartupErrorMessage(_process?.ExitCode));
+                    if (_process is { HasExited: false })
+                        return;
+
+                    lastError = new InvalidOperationException(GetStartupErrorMessage(_process?.ExitCode));
+                }
+                catch (Exception ex)
+                {
+                    lastError = ex;
+                }
+
+                await StopInternalAsync(cancellationToken);
             }
-            catch (Exception ex)
-            {
-                lastError = ex;
-            }
 
-            await StopAsync(cancellationToken);
+            throw lastError ?? new InvalidOperationException("Не удалось запустить Xray.");
         }
-
-        throw lastError ?? new InvalidOperationException("Не удалось запустить Xray.");
+        finally
+        {
+            _operationLock.Release();
+        }
     }
 
     public void Start(ProxyNode node, string xrayDirectory, AppSettings? settings = null) =>
@@ -108,6 +117,21 @@ public sealed class XrayRunner : IDisposable
 
     public async Task StopAsync(CancellationToken cancellationToken = default)
     {
+        await _operationLock.WaitAsync(cancellationToken);
+        try
+        {
+            await StopInternalAsync(cancellationToken);
+        }
+        finally
+        {
+            _operationLock.Release();
+        }
+    }
+
+    public void Stop() => StopAsync().GetAwaiter().GetResult();
+
+    private async Task StopInternalAsync(CancellationToken cancellationToken = default)
+    {
         if (_process is null)
             return;
 
@@ -139,8 +163,6 @@ public sealed class XrayRunner : IDisposable
             await Task.Delay(AdapterReleaseDelayMs, cancellationToken);
         }
     }
-
-    public void Stop() => StopAsync().GetAwaiter().GetResult();
 
     private void OnLogData(object sender, DataReceivedEventArgs args)
     {
@@ -227,5 +249,7 @@ public sealed class XrayRunner : IDisposable
                 // ignored
             }
         }
+
+        _operationLock.Dispose();
     }
 }

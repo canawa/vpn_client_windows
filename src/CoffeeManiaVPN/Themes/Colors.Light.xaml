@@ -1,0 +1,78 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Color x:Key="BackgroundColor">#FDF9F4</Color>
+    <Color x:Key="SurfaceColor">#F2EBE4</Color>
+    <Color x:Key="SurfaceContainerColor">#F5EEE8</Color>
+    <Color x:Key="SurfaceContainerHighColor">#EBE0D6</Color>
+    <Color x:Key="SurfaceContainerHighestColor">#E3D6CC</Color>
+    <Color x:Key="SurfaceVariantColor">#D9CBC0</Color>
+    <Color x:Key="PrimaryColor">#2E2621</Color>
+    <Color x:Key="PrimaryContainerColor">#EBE0D6</Color>
+    <Color x:Key="OnPrimaryContainerColor">#2E2621</Color>
+    <Color x:Key="OnSurfaceColor">#2E2621</Color>
+    <Color x:Key="OnSurfaceVariantColor">#8A7A6E</Color>
+    <Color x:Key="ProtocolBadgeTextColor">#2E2621</Color>
+    <Color x:Key="ProtocolHintTextColor">#8A7A6E</Color>
+    <Color x:Key="TertiaryColor">#4CAF50</Color>
+    <Color x:Key="OutlineVariantColor">#D4C5B8</Color>
+    <Color x:Key="ErrorColor">#D64545</Color>
+    <Color x:Key="PromoBackgroundColor">#FFFFFF</Color>
+    <Color x:Key="PromoTextColor">#2E2621</Color>
+    <Color x:Key="ConnectButtonRingColor">#D4C5B8</Color>
+    <Color x:Key="ConnectButtonRingHoverColor">#B8A898</Color>
+    <Color x:Key="ConnectButtonIconColor">#2E2621</Color>
+    <Color x:Key="BrandTextColor">#2E2621</Color>
+    <Color x:Key="BrandLogoBackgroundColor">#FFFFFF</Color>
+    <Color x:Key="BrandLogoIconColor">#2E2621</Color>
+    <Color x:Key="NavHoverColor">#18C9B8A8</Color>
+    <Color x:Key="CardBorderColor">#22A08A7A</Color>
+    <Color x:Key="IconButtonHoverColor">#18A08A7A</Color>
+    <Color x:Key="SettingsHoverColor">#12C9B8A8</Color>
+    <Color x:Key="ProtocolBadgeBackgroundColor">#33D4C5B8</Color>
+    <Color x:Key="ProtocolBadgeBorderColor">#55A08A7A</Color>
+    <Color x:Key="ServerCardHoverColor">#EEE6DC</Color>
+    <Color x:Key="WindowBorderColor">#F2EBE4</Color>
+
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
+    <SolidColorBrush x:Key="TitleBarBrush" Color="{StaticResource BackgroundColor}" />
+    <SolidColorBrush x:Key="SurfaceContainerBrush" Color="{StaticResource SurfaceContainerColor}" />
+    <SolidColorBrush x:Key="SurfaceContainerHighBrush" Color="{StaticResource SurfaceContainerHighColor}" />
+    <SolidColorBrush x:Key="SurfaceContainerHighestBrush" Color="{StaticResource SurfaceContainerHighestColor}" />
+    <SolidColorBrush x:Key="SurfaceVariantBrush" Color="{StaticResource SurfaceVariantColor}" />
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}" />
+    <SolidColorBrush x:Key="PrimaryContainerBrush" Color="{StaticResource PrimaryContainerColor}" />
+    <SolidColorBrush x:Key="OnPrimaryContainerBrush" Color="{StaticResource OnPrimaryContainerColor}" />
+    <SolidColorBrush x:Key="OnSurfaceBrush" Color="{StaticResource OnSurfaceColor}" />
+    <SolidColorBrush x:Key="OnSurfaceVariantBrush" Color="{StaticResource OnSurfaceVariantColor}" />
+    <SolidColorBrush x:Key="ProtocolBadgeTextBrush" Color="{StaticResource ProtocolBadgeTextColor}" />
+    <SolidColorBrush x:Key="ProtocolHintTextBrush" Color="{StaticResource ProtocolHintTextColor}" />
+    <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource TertiaryColor}" />
+    <SolidColorBrush x:Key="OutlineVariantBrush" Color="{StaticResource OutlineVariantColor}" />
+    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}" />
+    <SolidColorBrush x:Key="PromoBackgroundBrush" Color="{StaticResource PromoBackgroundColor}" />
+    <SolidColorBrush x:Key="PromoTextBrush" Color="{StaticResource PromoTextColor}" />
+    <SolidColorBrush x:Key="ConnectButtonRingBrush" Color="{StaticResource ConnectButtonRingColor}" />
+    <SolidColorBrush x:Key="ConnectButtonRingHoverBrush" Color="{StaticResource ConnectButtonRingHoverColor}" />
+    <SolidColorBrush x:Key="ConnectButtonIconBrush" Color="{StaticResource ConnectButtonIconColor}" />
+    <SolidColorBrush x:Key="ConnectButtonDisabledRingBrush" Color="{StaticResource SurfaceVariantColor}" />
+    <SolidColorBrush x:Key="BrandTextBrush" Color="{StaticResource BrandTextColor}" />
+    <SolidColorBrush x:Key="BrandLogoBackgroundBrush" Color="{StaticResource BrandLogoBackgroundColor}" />
+    <SolidColorBrush x:Key="BrandLogoIconBrush" Color="{StaticResource BrandLogoIconColor}" />
+    <SolidColorBrush x:Key="NavHoverBrush" Color="{StaticResource NavHoverColor}" />
+    <SolidColorBrush x:Key="CardBorderBrush" Color="{StaticResource CardBorderColor}" />
+    <SolidColorBrush x:Key="IconButtonHoverBrush" Color="{StaticResource IconButtonHoverColor}" />
+    <SolidColorBrush x:Key="SettingsHoverBrush" Color="{StaticResource SettingsHoverColor}" />
+    <SolidColorBrush x:Key="ProtocolBadgeBackgroundBrush" Color="{StaticResource ProtocolBadgeBackgroundColor}" />
+    <SolidColorBrush x:Key="ProtocolBadgeBorderBrush" Color="{StaticResource ProtocolBadgeBorderColor}" />
+    <SolidColorBrush x:Key="ServerCardHoverBrush" Color="{StaticResource ServerCardHoverColor}" />
+    <SolidColorBrush x:Key="MicaBorderBrush" Color="#20A08A7A" />
+    <SolidColorBrush x:Key="DividerBrush" Color="#18A08A7A" />
+
+    <DropShadowEffect x:Key="TextShadowEffect"
+                    Color="#2E2621"
+                    BlurRadius="3"
+                    ShadowDepth="0.8"
+                    Opacity="0.12"
+                    Direction="270" />
+</ResourceDictionary>
